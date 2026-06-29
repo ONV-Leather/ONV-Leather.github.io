@@ -4,7 +4,6 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
   <title>KAIZEN & DECO · Кожа ручной работы</title>
-
   <script src="https://cdn.tailwindcss.com"></script>
   <style>
     :root{color-scheme:dark}
@@ -24,7 +23,7 @@
     #modal-thumbs{display:flex;gap:8px;padding:6px;overflow-x:auto;-webkit-overflow-scrolling:touch}
     #modal-thumbs img{flex:0 0 auto;width:72px;height:44px;object-fit:cover;border-radius:6px}
     @media(max-width:420px){#modal-thumbs img{width:60px;height:40px}}
-    .no-hero { display: grid; place-items: center; padding: 3rem 0; color: rgba(255,255,255,0.06); font-size: 0.9rem; }
+    .no-hero { display: grid; place-items: center; padding: 3rem 0; color: rgba(255,255,255,0.06); font-size: 0.95rem; }
   </style>
 </head>
 <body class="antialiased">
@@ -39,16 +38,14 @@
 </header>
 
 <main class="pt-20">
-
   <!-- HERO -->
   <section id="hero" class="relative deco-frame mb-6">
     <div class="absolute inset-0 pointer-events-none"></div>
     <div class="max-w-6xl mx-auto px-5 md:px-8 lg:px-12 py-8">
       <div id="hero-container" class="hero-wrap">
         <img id="hero-img" class="hero-img" alt="Шляпа" style="display:none">
-        <div id="hero-fallback" class="no-hero" style="display:none">Фоновая фотография не найдена (используются локальные файлы)</div>
+        <div id="hero-fallback" class="no-hero" style="display:none">Фоновая фотография не найдена в assets/images/hero/</div>
       </div>
-
       <div class="relative z-20 text-center mt-6">
         <h1 class="font-display text-3xl md:text-5xl lg:text-6xl">Австралийские шляпы и аксессуары</h1>
         <p class="mt-4 muted max-w-2xl mx-auto">Ручная работа. Кожа растительного дубления.</p>
@@ -63,7 +60,6 @@
       <div class="text-sm text-deco-gold/70 uppercase tracking-wide">Коллекция</div>
       <h2 class="text-3xl md:text-4xl mt-3">Избранные работы</h2>
     </div>
-
     <div id="portfolio-grid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6"></div>
   </section>
 
@@ -74,7 +70,7 @@
   </footer>
 </main>
 
-<!-- PRODUCT MODAL -->
+<!-- modal -->
 <div id="product-modal" class="fixed inset-0 z-50 flex items-center justify-center p-4 modal-exit bg-black/70 backdrop-blur-sm" aria-hidden="true">
   <div class="relative bg-[#091118] border border-deco-gold/15 max-w-4xl w-full rounded-sm shadow-2xl overflow-hidden">
     <button id="modal-close" data-modal-close aria-label="Закрыть">✕</button>
@@ -100,99 +96,99 @@
 
 <script>
 (function(){
-  // Настройки
+  // config
   const exts = ['jpg','jpeg','png','webp'];
   const MAX_PER_ITEM = 15;
-  const heroBases = ['hat1','hat2','hat3'];
+  const heroBases = ['Hat1','Hat2','Hat3','hat1','hat2','hat3','01','1'];
   const heroFolder = 'assets/images/hero/';
   const itemFolderPrefix = 'assets/images/item-';
-  // lightweight embedded SVG placeholder (no external calls)
-  const placeholderDataUri = 'data:image/svg+xml;utf8,' + encodeURIComponent(
-    `<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="900"><rect width="100%" height="100%" fill="#222831"/><text x="50%" y="50%" fill="#9aa0a6" font-size="28" font-family="Arial" text-anchor="middle" dominant-baseline="middle">Фото отсутствует</text></svg>`
-  );
+  const placeholder = 'data:image/svg+xml;utf8,' + encodeURIComponent(`<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="900"><rect width="100%" height="100%" fill="#222831"/><text x="50%" y="50%" fill="#9aa0a6" font-size="28" font-family="Arial" text-anchor="middle" dominant-baseline="middle">Фото отсутствует</text></svg>`);
 
-  // initial explicit items (titles, meta). images will be expanded automatically
+  // initial portfolio meta (titles) — images arrays will be expanded by discovery
   window.portfolioItems = [
-    {id:1,title:'Классическая акубра',price:'14 500 ₽',status:'В наличии',images:['assets/images/item-1/01.jpg'],description:'Австралийская акубра',orderLink:'#'},
-    {id:2,title:'Федора',price:'12 000 ₽',status:'В наличии',images:['assets/images/item-2/01.jpg'],description:'Федора ручной формовки',orderLink:'#'},
+    {id:1,title:'Классическая акубра',price:'14 500 ₽',status:'В наличии',images:['assets/images/item-1/Hat1.jpg'],description:'Австралийская акубра',orderLink:'#'},
+    {id:2,title:'Федора',price:'12 000 ₽',status:'В наличии',images:['assets/images/item-2/Hat3.jpg'],description:'Федора ручной формовки',orderLink:'#'},
     {id:3,title:'Сумка-тоут',price:'18 000 ₽',status:'Под заказ',images:['assets/images/item-3/01.jpg'],description:'Сумка-тоут',orderLink:'#'},
-    {id:4,title:'Ремень',price:'8 500 ₽',status:'В наличии',images:['assets/images/item-4/01.jpg'],description:'Ремень',orderLink:'#'},
+    {id:4,title:'Ремень',price:'8 500 ₽',status:'В наличии',images:['assets/images/item-4/01.jpg'],description:'Ремень ручной выделки',orderLink:'#'},
     {id:5,title:'Кошелёк',price:'4 200 ₽',status:'В наличии',images:['assets/images/item-5/01.jpg'],description:'Кошелёк-кардхолдер',orderLink:'#'},
     {id:6,title:'Шляпа-ковбой',price:'15 800 ₽',status:'Под заказ',images:['assets/images/item-6/01.jpg'],description:'Шляпа-ковбой',orderLink:'#'},
     {id:7,title:'Портфель',price:'22 000 ₽',status:'Под заказ',images:['assets/images/item-7/01.jpg'],description:'Классический портфель',orderLink:'#'},
     {id:8,title:'Мини-поясная сумка',price:'6 200 ₽',status:'В наличии',images:['assets/images/item-8/01.jpg'],description:'Мини-поясная сумка',orderLink:'#'}
   ];
 
-  // Проверка существования изображения с таймаутом
-  function checkImage(url, timeout = 2500){
+  // helper to check image exists (with timeout)
+  function checkImage(url, timeout = 2000){
     return new Promise(resolve => {
       const img = new Image();
       let done = false;
-      const t = setTimeout(()=>{ if(done) return; done = true; resolve(false); img.src = ''; }, timeout);
+      const t = setTimeout(()=>{ if(done) return; done = true; resolve(false); img.src=''; }, timeout);
       img.onload = ()=>{ if(done) return; done = true; clearTimeout(t); resolve(true); };
       img.onerror = ()=>{ if(done) return; done = true; clearTimeout(t); resolve(false); };
       img.src = url;
     });
   }
 
-  // РЕНДЕР: рендерим карточки сразу по текущим portfolioItems (с первыми предположительными путями),
-  // затем будем обновлять конкретные карточки по мере обнаружения локальных файлов.
+  // rendering grid immediately with initial guesses so cards are visible
   function renderGrid(){
     const grid = document.getElementById('portfolio-grid');
     grid.innerHTML = portfolioItems.map(item => {
-      const thumb = (item.images && item.images.length) ? item.images[0] : placeholderDataUri;
+      const thumb = (item.images && item.images.length) ? item.images[0] : placeholder;
       return `
-        <article class="portfolio-card deco-frame rounded-sm overflow-hidden border border-transparent cursor-pointer" tabindex="0" data-id="${item.id}">
-          <div class="aspect-[3/4] overflow-hidden relative">
-            <img src="${thumb}" alt="${item.title}" class="w-full h-full object-cover" onerror="this.src='${placeholderDataUri}'">
+      <article class="portfolio-card deco-frame rounded-sm overflow-hidden border border-transparent cursor-pointer" tabindex="0" data-id="${item.id}">
+        <div class="aspect-[3/4] overflow-hidden relative">
+          <img src="${thumb}" alt="${item.title}" class="w-full h-full object-cover" onerror="this.src='${placeholder}'">
+        </div>
+        <div class="p-4 flex flex-col h-36">
+          <h3 class="font-display text-lg text-deco-warm/95">${item.title}</h3>
+          <div class="mt-2 flex items-center justify-between">
+            <div class="text-deco-gold font-semibold">${item.price}</div>
+            <div class="text-xs muted uppercase">Подробнее →</div>
           </div>
-          <div class="p-4 flex flex-col h-36">
-            <h3 class="font-display text-lg text-deco-warm/95">${item.title}</h3>
-            <div class="mt-2 flex items-center justify-between">
-              <div class="text-deco-gold font-semibold">${item.price}</div>
-              <div class="text-xs muted uppercase">Подробнее →</div>
-            </div>
-          </div>
-        </article>`;
+        </div>
+      </article>`;
     }).join('');
     attachGridHandlers();
   }
 
-  // Обновить миниатюру конкретной карточки после обнаружения локального изображения
   function updateCardThumb(itemId, newThumb){
-    const card = document.querySelector(`#portfolio-grid article[data-id="${itemId}"] img`);
-    if(card){
-      card.src = newThumb;
-      card.onerror = ()=> card.src = placeholderDataUri;
-    }
+    const img = document.querySelector(`#portfolio-grid article[data-id="${itemId}"] img`);
+    if(img){ img.src = newThumb; img.onerror = ()=> img.src = placeholder; }
   }
 
-  // Для одной карточки: ищем файлы 01..MAX_PER_ITEM с доступными расширениями
+  // For each item, try candidate base names per position 1..MAX_PER_ITEM
   async function discoverForItem(item){
-    const known = new Set(item.images || []);
+    item.images = item.images || [];
+    const known = new Set(item.images);
     for(let i=1;i<=MAX_PER_ITEM;i++){
-      const n = String(i).padStart(2,'0');
-      for(const ext of exts){
-        const path = `${itemFolderPrefix}${item.id}/${n}.${ext}`;
-        if(known.has(path)) break;
-        // проверяем
-        // eslint-disable-next-line no-await-in-loop
-        const ok = await checkImage(path, 2000);
-        if(ok){
-          item.images.push(path);
-          known.add(path);
-          // Если это первый реальный найденный файл и превью сейчас placeholder — обновим миниатюру
-          if(item.images[0] === path || item.images.length === 1){
-            updateCardThumb(item.id, path);
+      const candidates = [
+        `Hat${i}`,
+        `hat${i}`,
+        String(i).padStart(2,'0'),
+        String(i)
+      ];
+      let foundForPosition = false;
+      for(const base of candidates){
+        for(const ext of exts){
+          const path = `${itemFolderPrefix}${item.id}/${base}.${ext}`;
+          if(known.has(path)) { foundForPosition = true; break; }
+          // check
+          // eslint-disable-next-line no-await-in-loop
+          if(await checkImage(path, 1200)){
+            item.images.push(path);
+            known.add(path);
+            // if this is first discovered real file, update card thumb
+            if(item.images.length === 1 || item.images[0] === path) updateCardThumb(item.id, path);
+            foundForPosition = true;
+            break;
           }
-          break; // дальше проверяем следующий номер
         }
+        if(foundForPosition) break;
       }
+      // continue to next i regardless (we allow gaps)
     }
-    // если ничего не найдено, оставляем item.images как есть (может быть путь к 01.jpg, который не существует; onerror заменит на placeholder)
+    // if no images found, leave initial images (may be wrong) — placeholder will show
   }
 
-  // Подготовка всех карточек (последовательно по элементам чтобы не создавать слишком много параллельных запросов)
   async function discoverAllItems(){
     for(const it of portfolioItems){
       // eslint-disable-next-line no-await-in-loop
@@ -200,23 +196,23 @@
     }
   }
 
-  // Hero: ищем только ЛОКАЛЬНЫЕ файлы hat1..hat3
+  // Hero discovery — only local files; no external fallback
   async function discoverHeroLocal(){
-    const found = [];
+    const list = [];
+    // Check explicit bases (Hat1..Hat3 etc) first, then 01/1 fallback
     for(const base of heroBases){
       for(const ext of exts){
-        const p = `${heroFolder}${base}.${ext}`;
+        const path = `${heroFolder}${base}.${ext}`;
         // eslint-disable-next-line no-await-in-loop
-        if(await checkImage(p, 2000)){
-          found.push(p);
+        if(await checkImage(path, 1200)){
+          list.push(path);
           break;
         }
       }
     }
-    return found;
+    return list;
   }
 
-  // Ротация hero (использует переданный список локальных путей). Если список пуст, скрываем img и показываем fallback (градиент/текст)
   function startHeroRotation(list){
     const heroEl = document.getElementById('hero-img');
     const fallback = document.getElementById('hero-fallback');
@@ -229,7 +225,7 @@
     heroEl.style.display = 'block';
     let idx = 0;
     heroEl.src = list[0];
-    heroEl.onerror = ()=> { /* если локальная не загрузилась, оставляем следующий */ };
+    heroEl.onerror = () => {};
     setInterval(()=> {
       idx = (idx + 1) % list.length;
       const next = list[idx];
@@ -238,7 +234,7 @@
     }, 3000);
   }
 
-  // MODAL logic (simple and robust)
+  // MODAL
   const modal = document.getElementById('product-modal');
   const modalImage = document.getElementById('modal-image');
   const modalTitle = document.getElementById('modal-title');
@@ -249,8 +245,7 @@
   const modalThumbs = document.getElementById('modal-thumbs');
   const prevBtn = document.getElementById('prev-image');
   const nextBtn = document.getElementById('next-image');
-  let currentItem = null;
-  let currentIndex = 0;
+  let currentItem = null, currentIndex = 0;
 
   function openModal(item){
     currentItem = item; currentIndex = 0; updateModal();
@@ -258,32 +253,25 @@
   }
   function updateModal(){
     if(!currentItem) return;
-    modalImage.src = currentItem.images[currentIndex] || placeholderDataUri;
-    modalImage.onerror = ()=> modalImage.src = placeholderDataUri;
+    modalImage.src = currentItem.images[currentIndex] || placeholder;
+    modalImage.onerror = ()=> modalImage.src = placeholder;
     modalTitle.textContent = currentItem.title || '';
     modalDescription.textContent = currentItem.description || '';
     modalPrice.textContent = currentItem.price || '';
     modalStatus.textContent = currentItem.status || '';
     modalStatus.className = 'inline-block px-3 py-1 text-xs uppercase font-medium border rounded-sm ' + (currentItem.status === 'В наличии' ? 'border-emerald-600 text-emerald-400' : 'border-amber-500 text-amber-300');
     modalOrderBtn.href = currentItem.orderLink || '#';
-    modalThumbs.innerHTML = (currentItem.images || []).map((s,idx)=>`<img src="${s}" data-idx="${idx}" onerror="this.src='${placeholderDataUri}'">`).join('');
+    modalThumbs.innerHTML = (currentItem.images || []).map((s,idx)=>`<img src="${s}" data-idx="${idx}" onerror="this.src='${placeholder}'">`).join('');
   }
-  function closeModal(){
-    modal.classList.remove('modal-enter'); modal.classList.add('modal-exit'); modal.setAttribute('aria-hidden','true'); modal.style.pointerEvents='none'; document.body.style.overflow=''; currentItem = null;
-  }
-  function showIndex(i){
-    if(!currentItem) return;
-    if(i < 0) i = currentItem.images.length - 1;
-    if(i >= currentItem.images.length) i = 0;
-    currentIndex = i; updateModal();
-  }
+  function closeModal(){ modal.classList.remove('modal-enter'); modal.classList.add('modal-exit'); modal.setAttribute('aria-hidden','true'); modal.style.pointerEvents='none'; document.body.style.overflow=''; currentItem = null; }
+  function showIndex(i){ if(!currentItem) return; if(i<0) i = currentItem.images.length-1; if(i>=currentItem.images.length) i=0; currentIndex=i; updateModal(); }
 
   function attachGridHandlers(){
     const grid = document.getElementById('portfolio-grid');
-    grid.querySelectorAll('.portfolio-card').forEach(card=>{
+    grid.querySelectorAll('.portfolio-card').forEach(card => {
       card.addEventListener('click', ()=>{
         const id = +card.dataset.id;
-        const item = portfolioItems.find(p => p.id === id);
+        const item = portfolioItems.find(p=>p.id===id);
         if(item) openModal(item);
       });
     });
@@ -297,36 +285,29 @@
   if(nextBtn) nextBtn.addEventListener('click', ()=> showIndex(currentIndex+1));
   modalThumbs.addEventListener('click', (e)=> { const img = e.target.closest('img'); if(!img) return; showIndex(+img.dataset.idx); });
 
-  // INIT: render immediatelly using initial image guesses, then discover local files and update
+  // INIT: render immediately, then discover local files and update thumbs & hero
   renderGrid();
   (async function init(){
-    // discover hero local images (only local)
-    const heroFound = [];
-    for(const base of heroBases){
-      for(const ext of exts){
-        const p = `${heroFolder}${base}.${ext}`;
-        // eslint-disable-next-line no-await-in-loop
-        if(await checkImage(p, 2000)){ heroFound.push(p); break; }
+    try{
+      const heroList = await discoverHeroLocal();
+      startHeroRotation(heroList);
+
+      await discoverAllItems();
+      // after discovery, update thumbs for each item (ensure first real image shown)
+      for(const it of portfolioItems){
+        const real = it.images.find(src => src && !src.startsWith('data:'));
+        if(real) updateCardThumb(it.id, real);
       }
+      // update modal if open
+      if(currentItem) updateModal();
+    }catch(e){
+      console.error('Discovery error', e);
+    } finally {
+      document.getElementById('year').textContent = new Date().getFullYear();
     }
-    startHeroRotation(heroFound);
-
-    // discover item images and update thumbs as we find real files
-    for(const it of portfolioItems){
-      // eslint-disable-next-line no-await-in-loop
-      await discoverForItem(it);
-      // after discovery we ensure grid thumb shows first actual existing image
-      const firstReal = it.images.find(src => src && !src.startsWith('data:'));
-      if(firstReal) updateCardThumb(it.id, firstReal);
-    }
-    // after all discovery, if a modal is open, refresh it
-    if(currentItem) updateModal();
-
-    // set year
-    document.getElementById('year').textContent = new Date().getFullYear();
   })();
 
-  // expose close for external guards
+  // expose closeModal (guard callers)
   window.closeModal = closeModal;
 })();
 </script>
