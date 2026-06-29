@@ -5,6 +5,9 @@
   <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
   <title>ONV Leather · Кожаные изделия</title>
   <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Favicons -->
+  <link rel="icon" href="/assets/images/logo.png" />
+  <link rel="apple-touch-icon" sizes="180x180" href="/assets/images/logo.png" />
   <style>
     :root{color-scheme:dark}
     html,body{height:100%;margin:0;font-family:Inter,system-ui,-apple-system,"Segoe UI",Roboto,"Helvetica Neue",Arial;background:linear-gradient(160deg,#102635 0%,#184054 45%,#223d56 100%);color:#efe8db}
@@ -34,7 +37,10 @@
 <header class="fixed w-full z-40">
   <div class="backdrop-blur-md bg-black/20 border-b border-deco-gold/8">
     <div class="max-w-7xl mx-auto px-5 md:px-8 lg:px-12 flex items-center justify-between h-16">
-      <a href="#" class="flex items-baseline gap-3"><span class="text-deco-gold text-xl md:text-2xl">ONV Leather</span></a>
+      <a href="/" class="flex items-center gap-3">
+        <img src="/assets/images/logo.png" srcset="/assets/images/logo.png 1x" alt="ONV Leather" class="h-8 md:h-10" />
+        <span class="text-deco-gold text-xl md:text-2xl">ONV Leather</span>
+      </a>
       <button id="menu-toggle" class="md:hidden p-2" aria-label="menu">☰</button>
     </div>
   </div>
