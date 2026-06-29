@@ -8,197 +8,76 @@
   <!-- Tailwind CDN -->
   <script src="https://cdn.tailwindcss.com"></script>
 
-  <!-- Fonts (Google as fallback; можно заменить локально) -->
+  <!-- Fonts (Google fallback) -->
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600&family=Playfair+Display:wght@400;600&display=swap" rel="stylesheet">
-
-  <script>
-    tailwind.config = {
-      theme: {
-        extend: {
-          colors: {
-            'deco-gold': '#C4A35A',
-            'deco-warm': '#F5F0E8'
-          },
-          fontFamily: {
-            display: ['"Playfair Display"', 'serif'],
-            body: ['"Inter"', 'system-ui', 'sans-serif']
-          }
-        }
-      }
-    }
-  </script>
 
   <style>
     :root { color-scheme: dark; }
-    html,body { height:100%; }
-    body {
-      margin:0;
-      font-family: Inter, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial;
-      color: #efe8db;
-      -webkit-font-smoothing:antialiased;
-      background:
-        radial-gradient(circle at 20% 15%, rgba(255,255,255,0.02) 0%, transparent 25%),
-        linear-gradient(160deg,#102635 0%,#184054 45%,#223d56 100%);
-      min-height:100vh;
-    }
-
-    /* art-deco accents */
-    .deco-frame { border:1px solid rgba(196,163,90,0.12); position:relative; overflow:hidden; }
-    .deco-corner{ position:absolute; width:36px;height:36px; border-color: rgba(196,163,90,0.32); }
-    .deco-corner.tl{ top:-1px; left:-1px; border-top:1px solid; border-left:1px solid; }
-    .deco-corner.tr{ top:-1px; right:-1px; border-top:1px solid; border-right:1px solid; }
-    .deco-corner.bl{ bottom:-1px; left:-1px; border-bottom:1px solid; border-left:1px solid; }
-    .deco-corner.br{ bottom:-1px; right:-1px; border-bottom:1px solid; border-right:1px solid; }
-
-    /* hero image behaviour: object-fit to avoid cropping */
-    .hero-img { width:100%; height:72vh; max-height:80vh; object-fit:contain; object-position:center 60%; display:block; margin:0 auto; transition:opacity .45s ease; }
-    @media (max-width:640px){ .hero-img{ height:50vh; } }
-
-    /* simple fade classes for hero rotation */
-    .fade-hidden { opacity:0; }
-    .fade-visible { opacity:1; }
-
-    /* portfolio card */
-    .portfolio-card{ transition:transform .28s, box-shadow .28s; background:linear-gradient(180deg, rgba(6,10,12,0.45), rgba(8,12,14,0.35)); }
-    .portfolio-card:hover{ transform:translateY(-6px); box-shadow:0 18px 40px rgba(2,6,10,0.6); }
-
-    .muted{ color:rgba(245,240,232,0.65); }
-    .text-deco-gold{ color:#C4A35A; }
-
-    /* modal visibility */
-    .modal-exit{ opacity:0; pointer-events:none; }
-    .modal-enter{ opacity:1; pointer-events:auto; transition:opacity .22s ease; }
-
-    /* make close button clearly visible on mobile */
-    #modal-close{
-      z-index:9999;
-      position:absolute;
-      top:8px;
-      right:8px;
-      background:#C4A35A;
-      color:#071018;
-      border:none;
-      padding:6px 9px;
-      border-radius:8px;
-      font-size:18px;
-      line-height:1;
-      cursor:pointer;
-      box-shadow:0 2px 6px rgba(0,0,0,0.4);
-    }
-    @media (max-width:420px){ #modal-close{ padding:7px 10px; font-size:20px; } }
-
-    /* thumbs */
-    #modal-thumbs{ display:flex; gap:8px; padding:6px; overflow-x:auto; -webkit-overflow-scrolling:touch; }
-    #modal-thumbs img{ flex:0 0 auto; width:72px; height:44px; object-fit:cover; border-radius:6px; }
-    @media (max-width:420px){ #modal-thumbs img{ width:60px; height:40px; } }
+    html,body { height:100%; margin:0; font-family: Inter, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial; background: linear-gradient(160deg,#102635 0%,#184054 45%,#223d56 100%); color:#efe8db; -webkit-font-smoothing:antialiased; }
+    .deco-frame{border:1px solid rgba(196,163,90,0.12);position:relative;overflow:hidden}
+    .hero-img{width:100%;height:60vh;object-fit:contain;object-position:center 60%;display:block;margin:0 auto;transition:opacity .45s}
+    @media (max-width:640px){ .hero-img{height:44vh} }
+    .portfolio-card{transition:transform .28s,box-shadow .28s;background:linear-gradient(180deg, rgba(6,10,12,0.45), rgba(8,12,14,0.35));}
+    .portfolio-card:hover{transform:translateY(-6px);box-shadow:0 18px 40px rgba(2,6,10,0.6)}
+    .muted{color:rgba(245,240,232,0.65)}
+    .text-deco-gold{color:#C4A35A}
+    .modal-exit{opacity:0;pointer-events:none}
+    .modal-enter{opacity:1;pointer-events:auto;transition:opacity .22s}
+    #modal-close{z-index:9999;position:absolute;top:8px;right:8px;background:#C4A35A;color:#071018;border:none;padding:6px 9px;border-radius:8px;font-size:18px;cursor:pointer;box-shadow:0 2px 6px rgba(0,0,0,0.4)}
+    #modal-thumbs{display:flex;gap:8px;padding:6px;overflow-x:auto;-webkit-overflow-scrolling:touch}
+    #modal-thumbs img{flex:0 0 auto;width:72px;height:44px;object-fit:cover;border-radius:6px}
+    @media (max-width:420px){#modal-thumbs img{width:60px;height:40px}#modal-close{padding:7px 10px;font-size:20px}}
   </style>
 </head>
 <body class="antialiased">
 
-  <!-- HEADER -->
   <header class="fixed w-full z-40">
     <div class="backdrop-blur-md bg-black/20 border-b border-deco-gold/8">
       <div class="max-w-7xl mx-auto px-5 md:px-8 lg:px-12 flex items-center justify-between h-16">
-        <a href="#" class="flex items-baseline gap-3" aria-label="На главную">
-          <span class="font-display text-deco-gold text-xl md:text-2xl">KAIZEN & DECO</span>
-          <span class="text-sm muted hidden sm:inline">/ Leatherworks</span>
-        </a>
-
-        <nav class="hidden md:flex gap-8 items-center text-sm uppercase tracking-wide muted">
-          <a href="#catalog" class="hover:text-deco-gold">Каталог</a>
-          <a href="#about" class="hover:text-deco-gold">О мастере</a>
-          <a href="#contacts" class="hover:text-deco-gold">Контакты</a>
-        </nav>
-
-        <button id="menu-toggle" class="md:hidden p-2" aria-label="Открыть меню" aria-expanded="false">☰</button>
+        <a href="#" class="flex items-baseline gap-3"><span class="font-display text-deco-gold text-xl md:text-2xl">KAIZEN & DECO</span></a>
+        <button id="menu-toggle" class="md:hidden p-2" aria-label="menu">☰</button>
       </div>
-
       <div id="mobile-menu" class="md:hidden hidden bg-black/40 border-t border-deco-gold/8">
         <div class="px-5 py-6 flex flex-col gap-4 text-lg uppercase">
           <a href="#catalog" class="mobile-link">Каталог</a>
-          <a href="#about" class="mobile-link">О мастере</a>
-          <a href="#contacts" class="mobile-link">Контакты</a>
         </div>
       </div>
     </div>
   </header>
 
   <main class="pt-20">
-
-    <!-- HERO -->
     <section id="hero" class="relative deco-frame mb-6">
-      <div class="absolute inset-0 pointer-events-none">
-        <div class="deco-corner tl"></div>
-        <div class="deco-corner tr"></div>
-        <div class="deco-corner bl"></div>
-        <div class="deco-corner br"></div>
-      </div>
-
       <div class="max-w-6xl mx-auto px-5 md:px-8 lg:px-12 py-8 flex flex-col items-center">
         <div class="w-full flex items-center justify-center relative">
-          <!-- initial src should exist in repo or will be replaced by loader -->
-          <img id="hero-img" class="hero-img fade-visible" src="assets/images/hero/hat1.jpg" alt="Шляпа" loading="lazy" />
+          <img id="hero-img" class="hero-img" src="assets/images/hero/hat1.jpg" alt="Шляпа" loading="lazy">
         </div>
-
         <div class="relative z-20 text-center mt-6">
-          <h1 class="font-display text-3xl md:text-5xl lg:text-6xl text-deco-warm">Австралийские шляпы и аксессуары</h1>
-          <p class="mt-4 muted max-w-2xl mx-auto">Ручная работа. Кожа растительного дубления. Kaizen и Wabi‑Sabi в каждом стежке.</p>
-          <div class="mt-6">
-            <a href="#catalog" class="inline-flex gap-3 px-6 py-3 border border-deco-gold/60 text-deco-gold hover:bg-deco-gold hover:text-black rounded-sm uppercase tracking-wider">Смотреть коллекцию</a>
-          </div>
+          <h1 class="font-display text-3xl md:text-5xl lg:text-6xl">Австралийские шляпы и аксессуары</h1>
+          <p class="mt-4 muted max-w-2xl mx-auto">Ручная работа. Кожа растительного дубления.</p>
         </div>
       </div>
     </section>
 
-    <!-- CATALOG -->
     <section id="catalog" class="py-10 px-5 md:px-8 lg:px-12 max-w-7xl mx-auto">
       <div class="text-center mb-8">
         <div class="text-sm text-deco-gold/70 uppercase tracking-wide">Коллекция</div>
         <h2 class="font-display text-3xl md:text-4xl mt-3">Избранные работы</h2>
       </div>
-
       <div id="portfolio-grid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6"></div>
     </section>
 
-    <!-- ABOUT -->
-    <section id="about" class="py-14 bg-[linear-gradient(145deg,#0f2a3b,#163a4a)]">
-      <div class="max-w-6xl mx-auto px-5 md:px-8 lg:px-12 flex flex-col lg:flex-row gap-8 items-center">
-        <div class="lg:w-1/2">
-          <div class="aspect-[4/5] rounded-sm overflow-hidden border border-deco-gold/15">
-            <img src="https://images.unsplash.com/photo-1527689368864-3a821dbccc34?w=900&h=1100&fit=crop&crop=entropy" alt="Мастерская" class="w-full h-full object-cover">
-          </div>
-        </div>
-        <div class="lg:w-1/2">
-          <div class="text-deco-gold/70 uppercase text-xs tracking-wide">Философия</div>
-          <h3 class="font-display text-2xl md:text-3xl mt-3">Wabi‑Sabi в каждой шляпе</h3>
-          <p class="mt-4 muted max-w-xl leading-relaxed">Я создаю шляпы и аксессуары вручную, уважая материал и его естественное старение.</p>
-        </div>
-      </div>
-    </section>
-
-    <!-- FOOTER -->
-    <footer id="contacts" class="py-10 px-5 md:px-8 lg:px-12 border-t border-deco-gold/8">
+    <footer class="py-10 px-5 md:px-8 lg:px-12 border-t border-deco-gold/8">
       <div class="max-w-6xl mx-auto flex flex-col md:flex-row justify-between items-center gap-6">
-        <div>
-          <div class="font-display text-deco-gold text-xl">KAIZEN & DECO</div>
-          <div class="muted text-sm mt-2">© <span id="year"></span></div>
-        </div>
-        <div class="flex gap-5 mt-2">
-          <a href="https://t.me/your_telegram" class="muted hover:text-deco-gold">Telegram</a>
-          <a href="https://wa.me/your_number" class="muted hover:text-deco-gold">WhatsApp</a>
-          <a href="https://instagram.com/your_profile" class="muted hover:text-deco-gold">Instagram</a>
-        </div>
+        <div><div class="font-display text-deco-gold text-xl">KAIZEN & DECO</div><div class="muted text-sm mt-2">© <span id="year"></span></div></div>
+        <div class="flex gap-5 mt-2"><a href="#" class="muted">Telegram</a></div>
       </div>
     </footer>
-
   </main>
 
-  <!-- PRODUCT MODAL (hidden by default) -->
+  <!-- Modal -->
   <div id="product-modal" class="fixed inset-0 z-50 flex items-center justify-center p-4 modal-exit bg-black/70 backdrop-blur-sm" aria-hidden="true">
     <div class="relative bg-[#091118] border border-deco-gold/15 max-w-4xl w-full rounded-sm shadow-2xl overflow-hidden">
-      <!-- visible close button -->
       <button id="modal-close" data-modal-close aria-label="Закрыть">✕</button>
-
       <div class="md:flex">
         <div class="md:w-1/2 bg-black/20 p-4">
           <div class="relative">
@@ -208,281 +87,123 @@
           </div>
           <div id="modal-thumbs" class="mt-3"></div>
         </div>
-
         <div class="md:w-1/2 p-6 flex flex-col gap-4">
           <div id="modal-status" class="inline-block px-3 py-1 text-xs uppercase font-medium border rounded-sm"></div>
           <h3 id="modal-title" class="font-display text-2xl"></h3>
           <p id="modal-description" class="muted text-sm"></p>
-          <div class="mt-3">
-            <div class="text-deco-gold text-xl font-semibold" id="modal-price"></div>
-            <div class="text-xs muted mt-1">· цена указана за изделие</div>
-          </div>
-
-          <div class="mt-auto">
-            <a id="modal-order-btn" href="#" class="inline-flex items-center gap-3 px-5 py-3 border border-deco-gold/70 text-deco-gold hover:bg-deco-gold hover:text-black rounded-sm">Заказать</a>
-            <div class="text-xs muted mt-2">Свяжитесь через мессенджер для уточнения деталей</div>
-          </div>
+          <div class="mt-3"><div id="modal-price" class="text-deco-gold text-xl font-semibold"></div></div>
+          <div class="mt-auto"><a id="modal-order-btn" class="inline-flex items-center gap-3 px-5 py-3 border border-deco-gold/70 text-deco-gold hover:bg-deco-gold hover:text-black rounded-sm">Заказать</a></div>
         </div>
       </div>
     </div>
   </div>
 
-  <!-- modalGuard: hide modal on load and attach robust close handlers -->
   <script>
-    (function modalGuard(){
-      const modal = document.getElementById('product-modal');
-      if(!modal) return;
-      modal.classList.remove('modal-enter');
-      modal.classList.add('modal-exit');
-      modal.setAttribute('aria-hidden','true');
-      modal.style.pointerEvents = 'none';
+  // Minimal, robust script — synchronous rendering from explicit arrays
 
-      function safeClose(){
-        try { if(typeof closeModal === 'function'){ closeModal(); return; } } catch(e){}
-        modal.classList.remove('modal-enter');
-        modal.classList.add('modal-exit');
-        modal.setAttribute('aria-hidden','true');
-        modal.style.pointerEvents='none';
-        document.body.style.overflow='';
-      }
+  // Portfolio items: edit paths here if needed
+  const portfolioItems = [
+    {id:1, title:'Классическая акубра', price:'14 500 ₽', status:'В наличии', images:['assets/images/item-1/01.jpg','assets/images/item-1/02.jpg','assets/images/item-1/03.jpg'], description:'Австралийская акубра', orderLink:'#'},
+    {id:2, title:'Федора', price:'12 000 ₽', status:'В наличии', images:['assets/images/item-2/01.jpg','assets/images/item-2/02.jpg'], description:'Федора ручной формовки', orderLink:'#'},
+    {id:3, title:'Сумка-тоут', price:'18 000 ₽', status:'Под заказ', images:['assets/images/item-3/01.jpg','assets/images/item-3/02.jpg','assets/images/item-3/03.jpg','assets/images/item-3/04.jpg'], description:'Сумка-тоут', orderLink:'#'},
+    {id:4, title:'Ремень', price:'8 500 ₽', status:'В наличии', images:['assets/images/item-4/01.jpg'], description:'Ремень ручной выделки', orderLink:'#'},
+    {id:5, title:'Кошелёк', price:'4 200 ₽', status:'В наличии', images:['assets/images/item-5/01.jpg','assets/images/item-5/02.jpg'], description:'Кошелёк-кардхолдер', orderLink:'#'},
+    {id:6, title:'Шляпа-ковбой', price:'15 800 ₽', status:'Под заказ', images:['assets/images/item-6/01.jpg','assets/images/item-6/02.jpg'], description:'Шляпа-ковбой', orderLink:'#'},
+    {id:7, title:'Портфель', price:'22 000 ₽', status:'Под заказ', images:['assets/images/item-7/01.jpg'], description:'Классический портфель', orderLink:'#'},
+    {id:8, title:'Мини-поясная сумка', price:'6 200 ₽', status:'В наличии', images:['assets/images/item-8/01.jpg','assets/images/item-8/02.jpg','assets/images/item-8/03.jpg'], description:'Мини-поясная сумка', orderLink:'#'}
+  ];
 
-      modal.addEventListener('click', (e) => { if(e.target === modal) safeClose(); });
-      document.addEventListener('click', (e) => {
-        const btn = e.target.closest && e.target.closest('[data-modal-close]');
-        if(btn){ e.preventDefault(); safeClose(); }
+  // Helper: If image 404, browser onerror will set src to placeholder
+  const placeholder = 'https://via.placeholder.com/1200x900?text=No+Image';
+
+  // Render portfolio
+  function renderGrid(){
+    const grid = document.getElementById('portfolio-grid');
+    grid.innerHTML = portfolioItems.map(item => {
+      const thumb = (item.images && item.images.length) ? item.images[0] : placeholder;
+      return `<article class="portfolio-card deco-frame rounded-sm overflow-hidden border border-transparent cursor-pointer" tabindex="0" data-id="${item.id}">
+        <div class="aspect-[3/4] overflow-hidden relative"><img src="${thumb}" alt="${item.title}" class="w-full h-full object-cover" onerror="this.src='${placeholder}'"></div>
+        <div class="p-4 flex flex-col h-36"><h3 class="font-display text-lg text-deco-warm/95">${item.title}</h3>
+        <div class="mt-2 flex items-center justify-between"><div class="text-deco-gold font-semibold">${item.price}</div><div class="text-xs muted uppercase">Подробнее →</div></div></div></article>`;
+    }).join('');
+    attachGridHandlers();
+  }
+
+  // Modal logic
+  const modal = document.getElementById('product-modal');
+  const modalImage = document.getElementById('modal-image');
+  const modalTitle = document.getElementById('modal-title');
+  const modalDescription = document.getElementById('modal-description');
+  const modalPrice = document.getElementById('modal-price');
+  const modalStatus = document.getElementById('modal-status');
+  const modalOrderBtn = document.getElementById('modal-order-btn');
+  const modalThumbs = document.getElementById('modal-thumbs');
+  const prevBtn = document.getElementById('prev-image');
+  const nextBtn = document.getElementById('next-image');
+  let currentItem=null, currentIndex=0;
+
+  function openModal(item){
+    currentItem=item; currentIndex=0; updateModal();
+    modal.classList.remove('modal-exit'); modal.classList.add('modal-enter'); modal.setAttribute('aria-hidden','false'); modal.style.pointerEvents='auto'; document.body.style.overflow='hidden';
+  }
+  function updateModal(){
+    if(!currentItem) return;
+    modalImage.src = currentItem.images[currentIndex] || placeholder;
+    modalImage.onerror = ()=> modalImage.src = placeholder;
+    modalTitle.textContent = currentItem.title||'';
+    modalDescription.textContent = currentItem.description||'';
+    modalPrice.textContent = currentItem.price||'';
+    modalStatus.textContent = currentItem.status||'';
+    modalStatus.className = 'inline-block px-3 py-1 text-xs uppercase font-medium border rounded-sm ' + (currentItem.status === 'В наличии' ? 'border-emerald-600 text-emerald-400' : 'border-amber-500 text-amber-300');
+    modalOrderBtn.href = currentItem.orderLink || '#';
+    modalThumbs.innerHTML = (currentItem.images || []).map((s,i)=>`<img src="${s}" data-idx="${i}" onerror="this.src='${placeholder}'">`).join('');
+  }
+  function closeModal(){ modal.classList.remove('modal-enter'); modal.classList.add('modal-exit'); modal.setAttribute('aria-hidden','true'); modal.style.pointerEvents='none'; document.body.style.overflow=''; currentItem=null; }
+
+  function showIndex(i){ if(!currentItem) return; if(i<0) i = currentItem.images.length-1; if(i>=currentItem.images.length) i=0; currentIndex=i; updateModal(); }
+
+  function attachGridHandlers(){
+    const grid = document.getElementById('portfolio-grid');
+    grid.querySelectorAll('.portfolio-card').forEach(card=>{
+      card.addEventListener('click', ()=> {
+        const id = +card.dataset.id;
+        const item = portfolioItems.find(p=>p.id===id);
+        if(item) openModal(item);
       });
-      document.addEventListener('keydown', (e) => { if(e.key === 'Escape') safeClose(); });
+    });
+  }
 
-      // ensure close button visible on mobile (if CSS failed)
-      const closeBtn = document.getElementById('modal-close');
-      if(closeBtn) closeBtn.style.display = 'inline-block';
-    })();
-  </script>
+  // modal controls
+  document.getElementById('modal-close').addEventListener('click', closeModal);
+  modal.addEventListener('click', (e)=> { if(e.target===modal) closeModal(); });
+  document.addEventListener('keydown', (e)=> { if(e.key==='Escape') closeModal(); if(e.key==='ArrowLeft') showIndex(currentIndex-1); if(e.key==='ArrowRight') showIndex(currentIndex+1); });
+  prevBtn.addEventListener('click', ()=> showIndex(currentIndex-1));
+  nextBtn.addEventListener('click', ()=> showIndex(currentIndex+1));
+  modalThumbs.addEventListener('click', (e)=> { const img = e.target.closest('img'); if(!img) return; showIndex(+img.dataset.idx); });
 
-  <!-- main script: hero loader (robust extensions) + portfolio auto-discovery + modal behavior -->
-  <script>
-    (function(){
-      // config: extensions to try when checking files
-      const exts = ['jpg','jpeg','png','webp'];
+  // Hero rotation with fallback: if local image 404 -> fallback remote
+  const heroEl = document.getElementById('hero-img');
+  const localHero = ['assets/images/hero/hat1.jpg','assets/images/hero/hat2.jpg','assets/images/hero/hat3.jpg'];
+  const remoteHero = [
+    'https://images.unsplash.com/photo-1521369909029-2aed41daa610?w=1600&h=900&fit=crop&crop=entropy',
+    'https://images.unsplash.com/photo-1551028719-00167b16eac5?w=1600&h=900&fit=crop&crop=entropy',
+    'https://images.unsplash.com/photo-1588854337115-1c67d1a98b71?w=1600&h=900&fit=crop&crop=entropy'
+  ];
+  const heroList = localHero.slice(); // try locals first
+  let heroIdx=0;
+  heroEl.onerror = function(){ // if initial local fails, fallback to remote
+    heroEl.src = remoteHero[0];
+  };
+  setInterval(()=> {
+    heroIdx = (heroIdx+1) % heroList.length;
+    const next = heroList[heroIdx];
+    heroEl.classList.add('opacity-0');
+    setTimeout(()=> { heroEl.src = next; heroEl.classList.remove('opacity-0'); }, 300);
+  }, 3000);
 
-      // try to find existing hero images among common extensions
-      const heroBaseNames = ['hat1','hat2','hat3']; // expected base names in assets/images/hero/
-      const heroFolder = 'assets/images/hero/';
-      const heroImages = []; // will be filled with existing urls
-
-      function checkImage(url){ return new Promise(resolve => { const i=new Image(); i.onload=() => resolve(true); i.onerror=() => resolve(false); i.src=url; }); }
-
-      (async function findHeroImages(){
-        for(const base of heroBaseNames){
-          let found=false;
-          for(const ext of exts){
-            const url = `${heroFolder}${base}.${ext}`;
-            // try cache-busting with small delay? not necessary
-            const ok = await checkImage(url);
-            if(ok){ heroImages.push(url); found=true; break; }
-          }
-          // if not found, skip — later we will fallback to remote images if none found
-        }
-        // fallback to remote unsplash if none found
-        if(heroImages.length === 0){
-          heroImages.push(
-            'https://images.unsplash.com/photo-1521369909029-2aed41daa610?w=1600&h=900&fit=crop&crop=entropy',
-            'https://images.unsplash.com/photo-1551028719-00167b16eac5?w=1600&h=900&fit=crop&crop=entropy',
-            'https://images.unsplash.com/photo-1588854337115-1c67d1a98b71?w=1600&h=900&fit=crop&crop=entropy'
-          );
-        }
-        startHeroRotation();
-      })();
-
-      // portfolioItems: keep as global so other snippets can modify if needed
-      window.portfolioItems = [
-        { id:1, title:'Классическая акубра', price:'14 500 ₽', status:'В наличии', images: ['assets/images/item-1/01.jpg'], description:'Австралийская акубра...', orderLink:'https://t.me/your_telegram' },
-        { id:2, title:'Федора ручной формовки', price:'12 000 ₽', status:'В наличии', images: ['assets/images/item-2/01.jpg'], description:'Федора...', orderLink:'https://t.me/your_telegram' },
-        { id:3, title:'Сумка-тоут', price:'18 000 ₽', status:'Под заказ', images: ['assets/images/item-3/01.jpg'], description:'Тоут...', orderLink:'https://wa.me/your_number' },
-        { id:4, title:'Ремень ручной выделки', price:'8 500 ₽', status:'В наличии', images: ['assets/images/item-4/01.jpg'], description:'Ремень...', orderLink:'https://t.me/your_telegram' },
-        { id:5, title:'Кошелёк-кардхолдер', price:'4 200 ₽', status:'В наличии', images: ['assets/images/item-5/01.jpg'], description:'Кардхолдер...', orderLink:'https://t.me/your_telegram' },
-        { id:6, title:'Шляпа-ковбой', price:'15 800 ₽', status:'Под заказ', images: ['assets/images/item-6/01.jpg'], description:'Ковбой...', orderLink:'https://t.me/your_telegram' },
-        { id:7, title:'Классический портфель', price:'22 000 ₽', status:'Под заказ', images: ['assets/images/item-7/01.jpg'], description:'Портфель...', orderLink:'https://wa.me/your_number' },
-        { id:8, title:'Мини-поясная сумка', price:'6 200 ₽', status:'В наличии', images: ['assets/images/item-8/01.jpg'], description:'Мини-поясная...', orderLink:'https://t.me/your_telegram' }
-      ];
-
-      // auto-discover additional images for each item
-      const MAX_PER_ITEM = 12;
-      async function discoverItemImages(item){
-        item.images = item.images || [];
-        // make set to avoid duplicates
-        const known = new Set(item.images);
-        for(let i=1;i<=MAX_PER_ITEM;i++){
-          const num = String(i).padStart(2,'0');
-          for(const ext of exts){
-            const url = `assets/images/item-${item.id}/${num}.${ext}`;
-            // skip if already known
-            if(known.has(url)) break;
-            // check existence
-            // Note: sequential checks — avoids too many parallel requests
-            // If file exists, push and mark known.
-            // If not, continue checking other extensions.
-            // We do not break on first missing number because there may be gaps; we scan full range.
-            /* eslint-disable no-await-in-loop */
-            const ok = await checkImage(url);
-            if(ok){ item.images.push(url); known.add(url); break; }
-          }
-        }
-      }
-
-      async function prepareAllItems(){
-        for(const it of window.portfolioItems){
-          await discoverItemImages(it);
-        }
-        renderGrid(); // then render
-      }
-
-      // renderGrid reads portfolioItems and populates DOM
-      function renderGrid(){
-        const grid = document.getElementById('portfolio-grid');
-        if(!grid) return;
-        grid.innerHTML = window.portfolioItems.map(item => {
-          const thumb = (item.images && item.images.length) ? item.images[0] : 'assets/images/placeholder.jpg';
-          return `
-            <article class="portfolio-card deco-frame rounded-sm overflow-hidden border border-transparent cursor-pointer" tabindex="0" data-id="${item.id}" role="button" aria-label="Открыть ${item.title}">
-              <div class="aspect-[3/4] overflow-hidden relative">
-                <img src="${thumb}" alt="${item.title}" class="w-full h-full object-cover transition-transform duration-700 ease-out hover:scale-105" loading="lazy">
-              </div>
-              <div class="p-4 flex flex-col h-36">
-                <h3 class="font-display text-lg text-deco-warm/95">${item.title}</h3>
-                <div class="mt-2 flex items-center justify-between">
-                  <div class="text-deco-gold font-semibold">${item.price}</div>
-                  <div class="text-xs muted uppercase">Подробнее →</div>
-                </div>
-              </div>
-            </article>
-          `;
-        }).join('');
-        attachGridHandlers();
-      }
-
-      // modal elements and logic
-      const modal = document.getElementById('product-modal');
-      const modalImage = document.getElementById('modal-image');
-      const modalTitle = document.getElementById('modal-title');
-      const modalDescription = document.getElementById('modal-description');
-      const modalPrice = document.getElementById('modal-price');
-      const modalStatus = document.getElementById('modal-status');
-      const modalOrderBtn = document.getElementById('modal-order-btn');
-      const modalThumbs = document.getElementById('modal-thumbs');
-      const prevBtn = document.getElementById('prev-image');
-      const nextBtn = document.getElementById('next-image');
-      let currentItem = null;
-      let currentIndex = 0;
-
-      function openModal(item){
-        currentItem = item;
-        currentIndex = 0;
-        updateModal();
-        // show modal
-        modal.classList.remove('modal-exit');
-        modal.classList.add('modal-enter');
-        modal.setAttribute('aria-hidden','false');
-        modal.style.pointerEvents='auto';
-        document.body.style.overflow='hidden';
-      }
-      function updateModal(){
-        if(!currentItem) return;
-        modalImage.src = currentItem.images[currentIndex] || '';
-        modalImage.alt = currentItem.title || '';
-        modalTitle.textContent = currentItem.title || '';
-        modalDescription.textContent = currentItem.description || '';
-        modalPrice.textContent = currentItem.price || '';
-        modalStatus.textContent = currentItem.status || '';
-        modalStatus.className = 'inline-block px-3 py-1 text-xs uppercase font-medium border rounded-sm ' + (currentItem.status === 'В наличии' ? 'border-emerald-600 text-emerald-400' : 'border-amber-500 text-amber-300');
-        modalOrderBtn.href = currentItem.orderLink || '#';
-        // thumbs
-        modalThumbs.innerHTML = (currentItem.images || []).map((src,idx) => `<img src="${src}" data-idx="${idx}" class="${idx===currentIndex ? 'ring-2 ring-deco-gold':''}" loading="lazy">`).join('');
-      }
-      function closeModal(){
-        modal.classList.remove('modal-enter');
-        modal.classList.add('modal-exit');
-        modal.setAttribute('aria-hidden','true');
-        modal.style.pointerEvents='none';
-        document.body.style.overflow='';
-      }
-      function showIndex(i){
-        if(!currentItem) return;
-        if(i < 0) i = currentItem.images.length - 1;
-        if(i >= currentItem.images.length) i = 0;
-        currentIndex = i;
-        updateModal();
-      }
-
-      // attach handlers for grid elements
-      function attachGridHandlers(){
-        const grid = document.getElementById('portfolio-grid');
-        grid.addEventListener('click', (e) => {
-          const card = e.target.closest('.portfolio-card');
-          if(!card) return;
-          const id = +card.dataset.id;
-          const item = window.portfolioItems.find(p => p.id === id);
-          if(item) openModal(item);
-        });
-        grid.addEventListener('keydown', (e) => {
-          if(e.key === 'Enter' || e.key === ' ') {
-            const card = e.target.closest('.portfolio-card');
-            if(!card) return;
-            const id = +card.dataset.id;
-            const item = window.portfolioItems.find(p => p.id === id);
-            if(item) openModal(item);
-          }
-        });
-      }
-
-      // modal controls
-      if(prevBtn) prevBtn.addEventListener('click', ()=> showIndex(currentIndex - 1));
-      if(nextBtn) nextBtn.addEventListener('click', ()=> showIndex(currentIndex + 1));
-      modalThumbs.addEventListener('click', (e) => {
-        const img = e.target.closest('img');
-        if(!img) return;
-        const idx = +img.dataset.idx;
-        showIndex(idx);
-      });
-      // robust close: button, overlay click and Escape
-      document.getElementById('modal-close').addEventListener('click', () => closeModal());
-      modal.addEventListener('click', (e) => { if(e.target === modal) closeModal(); });
-      document.addEventListener('keydown', (e) => { if(e.key === 'Escape') closeModal(); });
-
-      // HERO rotation: uses heroImages array discovered earlier
-      const heroEl = document.getElementById('hero-img');
-      let heroIdx = 0;
-      function startHeroRotation(){
-        // if heroImages empty (shouldn't) do nothing
-        if(!heroImages || heroImages.length === 0) return;
-        // ensure initial src is one of the discovered images
-        try{ heroEl.src = heroImages[0]; } catch(e){}
-        setInterval(()=> {
-          const next = (heroIdx + 1) % heroImages.length;
-          // fade out/in
-          heroEl.classList.remove('fade-visible');
-          heroEl.classList.add('fade-hidden');
-          setTimeout(()=> {
-            heroEl.src = heroImages[next];
-            heroEl.classList.remove('fade-hidden');
-            heroEl.classList.add('fade-visible');
-            heroIdx = next;
-          }, 320);
-        }, 3000);
-      }
-
-      // Start: discover item images, then render and attach handlers
-      (async function init(){
-        await prepareAllItems();
-        // initial renderGrid already called by prepareAllItems -> renderGrid
-      })();
-
-      // expose some functions for modalGuard fallback
-      window.closeModal = closeModal;
-
-      // show year
-      document.getElementById('year').textContent = new Date().getFullYear();
-    })();
+  // initialize
+  renderGrid();
+  document.getElementById('year').textContent = new Date().getFullYear();
   </script>
 </body>
 </html>
