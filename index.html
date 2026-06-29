@@ -95,12 +95,6 @@
 </div>
 
 <script>
-/*
-  Быстрый discovery через GitHub Contents API без блокировки UI:
-  - renderGrid() вызывается СРАЗУ (placeholders)
-  - затем background fetch manifest; при получении обновляем thumb/hero/modal
-  - cache в localStorage (10 минут)
-*/
 (async function(){
   const owner = 'ONV-Leather';
   const repo = 'ONV-Leather.github.io';
@@ -113,36 +107,28 @@
   const itemsPrefix = 'assets/images/item-';
   const placeholder = 'data:image/svg+xml;utf8,' + encodeURIComponent(`<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="900"><rect width="100%" height="100%" fill="#222831"/><text x="50%" y="50%" fill="#9aa0a6" font-size="28" font-family="Arial" text-anchor="middle" dominant-baseline="middle">Фото отсутствует</text></svg>`);
 
-  // initial portfolioItems (images empty)
+  // initial portfolioItems
   window.portfolioItems = [];
   for(let i=1;i<=itemCount;i++){
     window.portfolioItems.push({ id:i, title:`Товар ${i}`, price:'—', status:'', images:[], description:'', orderLink:'#', _discovered:false });
   }
 
-  // utility: list dir via GitHub API
-  async function listDir(path){
+  function listDir(path){
     const url = baseApi + encodeURIComponent(path) + `?ref=${branch}`;
-    try {
-      const res = await fetch(url, { headers: { 'Accept': 'application/vnd.github.v3+json' }});
-      if(!res.ok) return [];
-      const json = await res.json();
-      return Array.isArray(json) ? json : [];
-    } catch(e){
-      console.warn('listDir error', e, url);
-      return [];
-    }
+    return fetch(url, { headers: { 'Accept': 'application/vnd.github.v3+json' }})
+      .then(res => res.ok ? res.json() : [])
+      .catch(err => { console.warn('listDir error', err, url); return []; });
   }
 
   function buildImagesFromEntries(entries){
-    const files = entries
-      .filter(e => e.type === 'file' && typeof e.name === 'string')
+    return entries
+      .filter(e => e && e.type === 'file' && typeof e.name === 'string')
       .filter(e => exts.some(ext => e.name.toLowerCase().endsWith('.' + ext)))
-      .map(e => ({ name: e.name, path: e.path }));
-    files.sort((a,b) => a.name.localeCompare(b.name, undefined, { numeric: true, sensitivity: 'base' }));
-    return files.map(f => rawBase + f.path);
+      .sort((a,b)=> a.name.localeCompare(b.name, undefined, {numeric:true, sensitivity:'base'}))
+      .map(e => rawBase + e.path);
   }
 
-  // render grid immediately (placeholders or any images already set)
+  // render grid immediately with placeholders
   function renderGrid(){
     const grid = document.getElementById('portfolio-grid');
     grid.innerHTML = window.portfolioItems.map(item => {
@@ -166,10 +152,10 @@
 
   function updateCardThumb(itemId, url){
     const img = document.querySelector(`#portfolio-grid article[data-id="${itemId}"] img`);
-    if(img) img.src = url;
+    if(img){ img.src = url; img.onerror = ()=> img.src = placeholder; }
   }
 
-  // modal utils
+  // modal helpers
   const modal = document.getElementById('product-modal');
   const modalImage = document.getElementById('modal-image');
   const modalTitle = document.getElementById('modal-title');
@@ -202,7 +188,6 @@
     showModalSpinner(!(item.images && item.images.length));
     updateModal();
     modal.classList.remove('modal-exit'); modal.classList.add('modal-enter'); modal.setAttribute('aria-hidden','false'); modal.style.pointerEvents='auto'; document.body.style.overflow='hidden';
-    // If images empty, try to fetch folder live (non-blocking)
     if((!item.images || item.images.length === 0) && !item._fetching){
       item._fetching = true;
       listDir(`${itemsPrefix}${item.id}`).then(entries => {
@@ -248,25 +233,20 @@
   if(nextBtn) nextBtn.addEventListener('click', ()=> showIndex(currentIndex+1));
   modalThumbs.addEventListener('click', (e)=> { const img = e.target.closest('img'); if(!img) return; showIndex(+img.dataset.idx); });
 
-  // initial render (immediate)
+  // render immediately
   renderGrid();
 
-  // background: fetch manifest for hero + items (fast, one request per folder)
+  // cache helpers
   const CACHE_KEY = 'onv_manifest_v2';
   const CACHE_TTL = 10 * 60 * 1000;
-
-  function readCache(){
-    try{ const raw = localStorage.getItem(CACHE_KEY); if(!raw) return null; const obj = JSON.parse(raw); if(Date.now() - obj.ts > CACHE_TTL) return null; return obj.data;}catch(e){return null;}
-  }
+  function readCache(){ try{ const raw = localStorage.getItem(CACHE_KEY); if(!raw) return null; const obj = JSON.parse(raw); if(Date.now() - obj.ts > CACHE_TTL) return null; return obj.data;}catch(e){return null;} }
   function writeCache(data){ try{ localStorage.setItem(CACHE_KEY, JSON.stringify({ ts: Date.now(), data })); }catch(e){} }
 
-  // perform background manifest fetch (non-blocking)
+  // background manifest (non-blocking)
   (async function backgroundManifest(){
     try{
-      // try cache first
       const cached = readCache();
       if(cached){
-        // apply cached images to items immediately
         if(cached.items){
           for(const it of window.portfolioItems){
             const key = 'item-' + it.id;
@@ -281,12 +261,11 @@
           }
         }
         if(cached.hero && cached.hero.length){
-          // hero in cache may already be raw URLs
           const heroList = cached.hero.map(p => p.startsWith('http') ? p : (rawBase + p));
           startHeroRotation(heroList);
         }
       }
-      // now fetch fresh manifest in background (do not block)
+
       const paths = [heroPath];
       for(let i=1;i<=itemCount;i++) paths.push(`${itemsPrefix}${i}`);
       const promises = paths.map(p => listDir(p));
@@ -295,7 +274,7 @@
       for(let i=1;i<=itemCount;i++){
         fresh.items['item-'+i] = buildImagesFromEntries(results[i] || []);
       }
-      // apply fresh
+
       for(const it of window.portfolioItems){
         const key = 'item-' + it.id;
         if(fresh.items[key] && fresh.items[key].length){
@@ -314,7 +293,6 @@
     }
   })();
 
-  // helper for hero rotation
   function buildImagesFromEntries(entries){
     return entries
       .filter(e => e.type === 'file' && typeof e.name === 'string')
@@ -322,6 +300,7 @@
       .sort((a,b)=> a.name.localeCompare(b.name, undefined, {numeric:true, sensitivity:'base'}))
       .map(e => rawBase + e.path);
   }
+
   function startHeroRotation(list){
     const heroEl = document.getElementById('hero-img');
     const fallback = document.getElementById('hero-fallback');
@@ -331,12 +310,7 @@
     setInterval(()=>{ idx=(idx+1)%list.length; heroEl.style.opacity='0'; setTimeout(()=>{ heroEl.src=list[idx]; heroEl.style.opacity='1'; },260); }, 3000);
   }
 
-  // helper rawBase used in buildImagesFromEntries
-  const rawBase = `https://raw.githubusercontent.com/${owner}/${repo}/${branch}/`;
-
-  // set year
   document.getElementById('year').textContent = new Date().getFullYear();
-
 })();
 </script>
 </body>
