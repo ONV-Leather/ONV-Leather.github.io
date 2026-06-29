@@ -107,32 +107,18 @@
   const itemsPrefix = 'assets/images/item-';
   const placeholder = 'data:image/svg+xml;utf8,' + encodeURIComponent(`<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="900"><rect width="100%" height="100%" fill="#222831"/><text x="50%" y="50%" fill="#9aa0a6" font-size="28" font-family="Arial" text-anchor="middle" dominant-baseline="middle">Фото отсутствует</text></svg>`);
 
-  // initial portfolioItems
+  // initial portfolioItems (images empty); metadata will be loaded from products.json
   window.portfolioItems = [];
   for(let i=1;i<=itemCount;i++){
     window.portfolioItems.push({ id:i, title:`Товар ${i}`, price:'—', status:'', images:[], description:'', orderLink:'#', _discovered:false });
   }
 
-  function listDir(path){
-    const url = baseApi + encodeURIComponent(path) + `?ref=${branch}`;
-    return fetch(url, { headers: { 'Accept': 'application/vnd.github.v3+json' }})
-      .then(res => res.ok ? res.json() : [])
-      .catch(err => { console.warn('listDir error', err, url); return []; });
-  }
-
-  function buildImagesFromEntries(entries){
-    return entries
-      .filter(e => e && e.type === 'file' && typeof e.name === 'string')
-      .filter(e => exts.some(ext => e.name.toLowerCase().endsWith('.' + ext)))
-      .sort((a,b)=> a.name.localeCompare(b.name, undefined, {numeric:true, sensitivity:'base'}))
-      .map(e => rawBase + e.path);
-  }
-
-  // render grid immediately with placeholders
+  // render grid — shows titles/prices/short description
   function renderGrid(){
     const grid = document.getElementById('portfolio-grid');
     grid.innerHTML = window.portfolioItems.map(item => {
       const thumb = (item.images && item.images.length) ? item.images[0] : placeholder;
+      const short = (item.description && item.description.length > 80) ? item.description.slice(0,80).trim() + '…' : (item.description || '');
       return `
         <article class="portfolio-card deco-frame rounded-sm overflow-hidden border border-transparent cursor-pointer" tabindex="0" data-id="${item.id}">
           <div class="aspect-[3/4] overflow-hidden relative">
@@ -140,8 +126,10 @@
           </div>
           <div class="p-4 flex flex-col h-36">
             <h3 class="font-display text-lg text-deco-warm/95">${item.title}</h3>
+            <div class="mt-1 text-sm text-deco-gold font-semibold">${item.price || ''}</div>
+            <div class="mt-2 muted text-sm flex-1">${short}</div>
             <div class="mt-2 flex items-center justify-between">
-              <div class="text-deco-gold font-semibold">${item.price}</div>
+              <div class="text-xs muted uppercase">${item.status || ''}</div>
               <div class="text-xs muted uppercase">Подробнее →</div>
             </div>
           </div>
@@ -236,11 +224,57 @@
   // render immediately
   renderGrid();
 
+  // make loadProductMetaAndApply globally available and callable
+  window.loadProductMetaAndApply = async function(){
+    try{
+      const res = await fetch('/assets/data/products.json', { cache: 'no-store' });
+      if(!res || !res.ok) return;
+      const data = await res.json();
+      const map = new Map(data.map(p => [p.id, p]));
+      for(const it of window.portfolioItems){
+        const meta = map.get(it.id);
+        if(meta){
+          it.title = meta.title ?? it.title;
+          it.price = meta.price ?? it.price;
+          it.status = meta.status ?? it.status;
+          it.description = meta.description ?? it.description;
+          it.orderLink = meta.orderLink ?? it.orderLink;
+        }
+      }
+      renderGrid();
+      if(currentItem) updateModal();
+    }catch(e){ console.warn('Не удалось загрузить products.json', e); }
+  };
+
   // cache helpers
   const CACHE_KEY = 'onv_manifest_v2';
   const CACHE_TTL = 10 * 60 * 1000;
   function readCache(){ try{ const raw = localStorage.getItem(CACHE_KEY); if(!raw) return null; const obj = JSON.parse(raw); if(Date.now() - obj.ts > CACHE_TTL) return null; return obj.data;}catch(e){return null;} }
   function writeCache(data){ try{ localStorage.setItem(CACHE_KEY, JSON.stringify({ ts: Date.now(), data })); }catch(e){} }
+
+  function listDir(path){
+    const url = baseApi + encodeURIComponent(path) + `?ref=${branch}`;
+    return fetch(url, { headers: { 'Accept': 'application/vnd.github.v3+json' }})
+      .then(res => res.ok ? res.json() : [])
+      .catch(err => { console.warn('listDir error', err, url); return []; });
+  }
+
+  function buildImagesFromEntries(entries){
+    return entries
+      .filter(e => e && e.type === 'file' && typeof e.name === 'string')
+      .filter(e => exts.some(ext => e.name.toLowerCase().endsWith('.'+ext)))
+      .sort((a,b)=> a.name.localeCompare(b.name, undefined, {numeric:true, sensitivity:'base'}))
+      .map(e => rawBase + e.path);
+  }
+
+  function startHeroRotation(list){
+    const heroEl = document.getElementById('hero-img');
+    const fallback = document.getElementById('hero-fallback');
+    if(!list || list.length === 0){ heroEl.style.display='none'; fallback.style.display='block'; return; }
+    fallback.style.display='none'; heroEl.style.display='block';
+    let idx=0; heroEl.src = list[0];
+    setInterval(()=>{ idx=(idx+1)%list.length; heroEl.style.opacity='0'; setTimeout(()=>{ heroEl.src=list[idx]; heroEl.style.opacity='1'; },260); }, 3000);
+  }
 
   // background manifest (non-blocking)
   (async function backgroundManifest(){
@@ -288,27 +322,16 @@
       }
       if(fresh.hero && fresh.hero.length) startHeroRotation(fresh.hero);
       writeCache(fresh);
+
+      // After we have refreshed manifest, ensure metadata from products.json is applied
+      if(typeof window.loadProductMetaAndApply === 'function'){
+        try{ await window.loadProductMetaAndApply(); }catch(e){console.warn('Error applying product metadata', e);}  
+      }
+
     }catch(err){
       console.warn('backgroundManifest error', err);
     }
   })();
-
-  function buildImagesFromEntries(entries){
-    return entries
-      .filter(e => e.type === 'file' && typeof e.name === 'string')
-      .filter(e => exts.some(ext => e.name.toLowerCase().endsWith('.'+ext)))
-      .sort((a,b)=> a.name.localeCompare(b.name, undefined, {numeric:true, sensitivity:'base'}))
-      .map(e => rawBase + e.path);
-  }
-
-  function startHeroRotation(list){
-    const heroEl = document.getElementById('hero-img');
-    const fallback = document.getElementById('hero-fallback');
-    if(!list || list.length === 0){ heroEl.style.display='none'; fallback.style.display='block'; return; }
-    fallback.style.display='none'; heroEl.style.display='block';
-    let idx=0; heroEl.src = list[0];
-    setInterval(()=>{ idx=(idx+1)%list.length; heroEl.style.opacity='0'; setTimeout(()=>{ heroEl.src=list[idx]; heroEl.style.opacity='1'; },260); }, 3000);
-  }
 
   document.getElementById('year').textContent = new Date().getFullYear();
 })();
