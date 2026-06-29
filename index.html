@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
-  <title>KAIZEN & DECO · Кожа ручной работы</title>
+  <title>ONV Leather · Кожаные изделия ручной работы</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <style>
     :root{color-scheme:dark}
@@ -24,6 +24,10 @@
     #modal-thumbs{display:flex;gap:8px;padding:6px;overflow-x:auto;-webkit-overflow-scrolling:touch}
     #modal-thumbs img{flex:0 0 auto;width:72px;height:44px;object-fit:cover;border-radius:6px}
     @media(max-width:420px){#modal-thumbs img{width:60px;height:40px}}
+    /* spinner */
+    .spinner{width:44px;height:44px;border:5px solid rgba(255,255,255,0.08);border-top-color:#C4A35A;border-radius:50%;animation:spin 1s linear infinite}
+    @keyframes spin{to{transform:rotate(360deg)}}
+    .center{display:flex;align-items:center;justify-content:center}
   </style>
 </head>
 <body class="antialiased">
@@ -31,7 +35,7 @@
 <header class="fixed w-full z-40">
   <div class="backdrop-blur-md bg-black/20 border-b border-deco-gold/8">
     <div class="max-w-7xl mx-auto px-5 md:px-8 lg:px-12 flex items-center justify-between h-16">
-      <a href="#" class="flex items-baseline gap-3"><span class="text-deco-gold text-xl md:text-2xl">KAIZEN & DECO</span></a>
+      <a href="#" class="flex items-baseline gap-3"><span class="text-deco-gold text-xl md:text-2xl">ONV Leather</span></a>
       <button id="menu-toggle" class="md:hidden p-2" aria-label="menu">☰</button>
     </div>
   </div>
@@ -46,7 +50,7 @@
       </div>
       <div class="relative z-20 text-center mt-6">
         <h1 class="font-display text-3xl md:text-5xl lg:text-6xl">Австралийские шляпы и аксессуары</h1>
-        <p class="mt-4 muted max-w-2xl mx-auto">Ручная работа. Кожа растительного дубления.</p>
+        <p class="mt-4 muted max-w-2xl mx-auto">Ручная работа. Кожа высокого качества. Индивидуальный подход к каждому клиенту.</p>
         <div class="mt-6"><a href="#catalog" class="inline-flex gap-3 px-6 py-3 border border-deco-gold/60 text-deco-gold hover:bg-deco-gold hover:text-black rounded-sm uppercase tracking-wider">Смотреть коллекцию</a></div>
       </div>
     </div>
@@ -57,16 +61,19 @@
       <div class="text-sm text-deco-gold/70 uppercase tracking-wide">Коллекция</div>
       <h2 class="text-3xl md:text-4xl mt-3">Избранные работы</h2>
     </div>
-    <div id="portfolio-grid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6"></div>
+    <div id="portfolio-grid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+      <!-- grid will be rendered -->
+    </div>
   </section>
 
   <footer class="py-10 px-5 md:px-8 lg:px-12 border-t border-deco-gold/8">
     <div class="max-w-6xl mx-auto flex flex-col md:flex-row justify-between items-center gap-6">
-      <div><div class="text-deco-gold text-xl">KAIZEN & DECO</div><div class="muted text-sm mt-2">© <span id="year"></span></div></div>
+      <div><div class="text-deco-gold text-xl">ONV Leather</div><div class="muted text-sm mt-2">© <span id="year"></span></div></div>
     </div>
   </footer>
 </main>
 
+<!-- modal -->
 <div id="product-modal" class="fixed inset-0 z-50 flex items-center justify-center p-4 modal-exit bg-black/70 backdrop-blur-sm" aria-hidden="true">
   <div class="relative bg-[#091118] border border-deco-gold/15 max-w-4xl w-full rounded-sm shadow-2xl overflow-hidden">
     <button id="modal-close" data-modal-close aria-label="Закрыть">✕</button>
@@ -84,6 +91,7 @@
         <h3 id="modal-title" class="text-2xl"></h3>
         <p id="modal-description" class="muted text-sm"></p>
         <div class="mt-3"><div id="modal-price" class="text-deco-gold text-xl font-semibold"></div></div>
+        <div id="modal-loading" class="center mt-3" style="display:none"><div class="spinner"></div></div>
         <div class="mt-auto"><a id="modal-order-btn" class="inline-flex items-center gap-3 px-5 py-3 border border-deco-gold/70 text-deco-gold hover:bg-deco-gold hover:text-black rounded-sm">Заказать</a></div>
       </div>
     </div>
@@ -91,157 +99,118 @@
 </div>
 
 <script>
-(function(){
-  // настройки
+/*
+  Быстрый, надёжный discovery через GitHub REST Contents API.
+  - Один fetch на папку (hero, item-1..item-8)
+  - Формируем raw.githubusercontent URLs
+  - Кэш в localStorage на 10 минут (чтобы повторные загрузки были мгновенными)
+*/
+(async function(){
+  const owner = 'ONV-Leather';
+  const repo = 'ONV-Leather.github.io';
+  const branch = 'main';
+  const baseApi = `https://api.github.com/repos/${owner}/${repo}/contents/`;
+  const rawBase = `https://raw.githubusercontent.com/${owner}/${repo}/${branch}/`;
+  const itemCount = 8;
   const exts = ['jpg','jpeg','png','webp'];
-  const MAX_PER_ITEM = 15;
-  const heroBases = ['Hat1','Hat2','Hat3','hat1','hat2','hat3','01','1'];
-  const heroFolder = 'assets/images/hero/';
-  const itemFolderPrefix = 'assets/images/item-';
+  const heroPath = 'assets/images/hero';
+  const itemsPrefix = 'assets/images/item-';
   const placeholder = 'data:image/svg+xml;utf8,' + encodeURIComponent(`<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="900"><rect width="100%" height="100%" fill="#222831"/><text x="50%" y="50%" fill="#9aa0a6" font-size="28" font-family="Arial" text-anchor="middle" dominant-baseline="middle">Фото отсутствует</text></svg>`);
 
-  // начальная структура — пустые списки изображений
-  window.portfolioItems = [
-    {id:1,title:'Классическая акубра',price:'14 500 ₽',status:'В наличии',images:[],description:'Австралийская акубра',orderLink:'#'},
-    {id:2,title:'Федора',price:'12 000 ₽',status:'В наличии',images:[],description:'Федора',orderLink:'#'},
-    {id:3,title:'Сумка-тоут',price:'18 000 ₽',status:'Под заказ',images:[],description:'Сумка-тоут',orderLink:'#'},
-    {id:4,title:'Ремень',price:'8 500 ₽',status:'В наличии',images:[],description:'Ремень',orderLink:'#'},
-    {id:5,title:'Кошелёк',price:'4 200 ₽',status:'В наличии',images:[],description:'Кошелёк',orderLink:'#'},
-    {id:6,title:'Шляпа-ковбой',price:'15 800 ₽',status:'Под заказ',images:[],description:'Шляпа',orderLink:'#'},
-    {id:7,title:'Портфель',price:'22 000 ₽',status:'Под заказ',images:[],description:'Портфель',orderLink:'#'},
-    {id:8,title:'Мини-поясная сумка',price:'6 200 ₽',status:'В наличии',images:[],description:'Мини-поясная сумка',orderLink:'#'}
-  ];
-
-  // проверка существования изображения (timeout)
-  function checkImage(url, timeout = 4000){
-    return new Promise(resolve => {
-      const img = new Image();
-      let done = false;
-      const t = setTimeout(()=>{ if(done) return; done = true; resolve(false); img.src=''; }, timeout);
-      img.onload = ()=>{ if(done) return; done = true; clearTimeout(t); resolve(true); };
-      img.onerror = ()=>{ if(done) return; done = true; clearTimeout(t); resolve(false); };
-      img.src = url;
-    });
+  // portfolioItems meta (images empty -> filled from API)
+  window.portfolioItems = [];
+  for(let i=1;i<=itemCount;i++){
+    window.portfolioItems.push({ id:i, title:`Товар ${i}`, price:'—', status:'', images:[], description:'', orderLink:'#' });
   }
 
-  // отрисовка сетки (немедленно)
+  // cache helpers
+  const CACHE_KEY = 'onv_manifest_v1';
+  const CACHE_TTL = 10 * 60 * 1000; // 10 minutes
+  function readCache(){ try{ const raw = localStorage.getItem(CACHE_KEY); if(!raw) return null; const obj = JSON.parse(raw); if(Date.now() - obj.ts > CACHE_TTL) return null; return obj.data;}catch(e){return null;} }
+  function writeCache(data){ try{ localStorage.setItem(CACHE_KEY, JSON.stringify({ ts: Date.now(), data })); }catch(e){} }
+
+  // utility: fetch JSON directory listing
+  async function listDir(path){
+    const url = baseApi + encodeURIComponent(path) + `?ref=${branch}`;
+    try {
+      const res = await fetch(url, { headers: { 'Accept': 'application/vnd.github.v3+json' }});
+      if(!res.ok) return [];
+      const json = await res.json();
+      // json is array of { name, path, type }
+      return Array.isArray(json) ? json : [];
+    } catch(e){
+      console.warn('listDir error', e, url);
+      return [];
+    }
+  }
+
+  // build images list from directory entries (filter by extension and return raw URLs)
+  function buildImagesFromEntries(entries){
+    const files = entries
+      .filter(e => e.type === 'file' && typeof e.name === 'string')
+      .filter(e => {
+        const nm = e.name.toLowerCase();
+        return exts.some(ext => nm.endsWith('.' + ext));
+      })
+      .map(e => ({ name: e.name, path: e.path }));
+    // sort by name natural (01,02,... Hat1, Hat2 etc.)
+    files.sort((a,b) => a.name.localeCompare(b.name, undefined, { numeric: true, sensitivity: 'base' }));
+    return files.map(f => rawBase + f.path);
+  }
+
+  // Try cache first
+  let manifest = readCache();
+  if(!manifest){
+    manifest = { hero: [], items: {} };
+    // Parallelize folder requests (hero + items)
+    const promises = [];
+    // hero
+    promises.push(listDir(heroPath).then(entries => manifest.hero = buildImagesFromEntries(entries)));
+    // items
+    for(let i=1;i<=itemCount;i++){
+      const p = `${itemsPrefix}${i}`;
+      promises.push(listDir(p).then(entries => manifest.items['item-' + i] = buildImagesFromEntries(entries)));
+    }
+    await Promise.all(promises);
+    writeCache(manifest);
+  }
+
+  // populate portfolioItems images from manifest
+  for(const it of window.portfolioItems){
+    const key = 'item-' + it.id;
+    if(manifest.items[key] && manifest.items[key].length) {
+      it.images = manifest.items[key].slice(); // copy
+      it._discovered = true;
+    } else {
+      it.images = [];
+      it._discovered = true; // no images found but considered discovered
+    }
+  }
+
+  // render grid now (fast)
   function renderGrid(){
     const grid = document.getElementById('portfolio-grid');
     grid.innerHTML = window.portfolioItems.map(item => {
       const thumb = (item.images && item.images.length) ? item.images[0] : placeholder;
+      // show title/price from repo if you want to edit these fields in code; keep default for now
       return `
-      <article class="portfolio-card deco-frame rounded-sm overflow-hidden border border-transparent cursor-pointer" tabindex="0" data-id="${item.id}">
-        <div class="aspect-[3/4] overflow-hidden relative">
-          <img src="${thumb}" alt="${item.title}" class="w-full h-full object-cover" onerror="this.src='${placeholder}'">
-        </div>
-        <div class="p-4 flex flex-col h-36">
-          <h3 class="font-display text-lg text-deco-warm/95">${item.title}</h3>
-          <div class="mt-2 flex items-center justify-between">
-            <div class="text-deco-gold font-semibold">${item.price}</div>
-            <div class="text-xs muted uppercase">Подробнее →</div>
+        <article class="portfolio-card deco-frame rounded-sm overflow-hidden border border-transparent cursor-pointer" tabindex="0" data-id="${item.id}">
+          <div class="aspect-[3/4] overflow-hidden relative">
+            <img src="${thumb}" alt="${item.title}" class="w-full h-full object-cover" onerror="this.src='${placeholder}'">
           </div>
-        </div>
-      </article>`;
+          <div class="p-4 flex flex-col h-36">
+            <h3 class="font-display text-lg text-deco-warm/95">${item.title}</h3>
+            <div class="mt-2 flex items-center justify-between">
+              <div class="text-deco-gold font-semibold">${item.price}</div>
+              <div class="text-xs muted uppercase">Подробнее →</div>
+            </div>
+          </div>
+        </article>`;
     }).join('');
     attachGridHandlers();
   }
 
-  function updateCardThumb(itemId, newThumb){
-    const img = document.querySelector(`#portfolio-grid article[data-id="${itemId}"] img`);
-    if(img){ img.src = newThumb; img.onerror = ()=> img.src = placeholder; }
-  }
-
-  // обнаружение изображений для одной карточки
-  async function discoverForItem(item){
-    if(item._discovered) return;
-    item._discovered = false;
-    item.images = item.images || [];
-    const known = new Set(item.images);
-    for(let i=1;i<=MAX_PER_ITEM;i++){
-      const candidates = [
-        `Hat${i}`,
-        `hat${i}`,
-        String(i).padStart(2,'0'),
-        String(i)
-      ];
-      let foundForPosition = false;
-      for(const base of candidates){
-        for(const ext of exts){
-          const path = `${itemFolderPrefix}${item.id}/${base}.${ext}`;
-          if(known.has(path)) { foundForPosition = true; break; }
-          // eslint-disable-next-line no-await-in-loop
-          if(await checkImage(path, 3000)){ // увеличенный таймаут для больших файлов
-            item.images.push(path);
-            known.add(path);
-            // обновляем превью если это первая реально найденная картинка
-            if(item.images.length === 1) updateCardThumb(item.id, path);
-            foundForPosition = true;
-            break;
-          }
-        }
-        if(foundForPosition) break;
-      }
-    }
-    // дедупликация, сохранение порядка
-    item.images = item.images.filter((v,i,a) => a.indexOf(v) === i);
-    item._discovered = true;
-  }
-
-  // фон: поиск только локальных hero файлов (больше timeout)
-  async function discoverHeroLocal(){
-    const list = [];
-    for(const base of heroBases){
-      for(const ext of exts){
-        const p = `${heroFolder}${base}.${ext}`;
-        // eslint-disable-next-line no-await-in-loop
-        if(await checkImage(p, 5000)){ list.push(p); break; }
-      }
-    }
-    return list;
-  }
-
-  function startHeroRotation(list){
-    const heroEl = document.getElementById('hero-img');
-    const fallback = document.getElementById('hero-fallback');
-    if(!list || list.length === 0){
-      heroEl.style.display = 'none';
-      fallback.style.display = 'block';
-      return;
-    }
-    fallback.style.display = 'none';
-    heroEl.style.display = 'block';
-    let idx = 0;
-    heroEl.src = list[0];
-    heroEl.onerror = ()=> {};
-    setInterval(()=> {
-      idx = (idx + 1) % list.length;
-      const next = list[idx];
-      heroEl.style.opacity = '0';
-      setTimeout(()=> { heroEl.src = next; heroEl.style.opacity = '1'; }, 260);
-    }, 3000);
-  }
-
-  // обнаружение всех item-ов с ограниченной параллельностью (pool)
-  async function discoverAllItemsParallel(concurrency = 3){
-    const items = window.portfolioItems.slice();
-    let idx = 0;
-    const workers = new Array(concurrency).fill(null).map(async () => {
-      while(true){
-        const i = idx++;
-        if(i >= items.length) break;
-        const it = items[i];
-        try {
-          // для каждого item запускаем discoverForItem
-          await discoverForItem(it);
-        } catch(e){
-          console.warn('discover error', e);
-        }
-      }
-    });
-    await Promise.all(workers);
-  }
-
-  // MODAL
+  // modal utilities
   const modal = document.getElementById('product-modal');
   const modalImage = document.getElementById('modal-image');
   const modalTitle = document.getElementById('modal-title');
@@ -250,46 +219,68 @@
   const modalStatus = document.getElementById('modal-status');
   const modalOrderBtn = document.getElementById('modal-order-btn');
   const modalThumbs = document.getElementById('modal-thumbs');
+  const modalLoading = document.getElementById('modal-loading');
   const prevBtn = document.getElementById('prev-image');
   const nextBtn = document.getElementById('next-image');
-  let currentItem = null, currentIndex = 0;
+  let currentItem=null, currentIndex=0;
 
-  // открываем модал сразу; если обнаружение не завершено — запускаем его и обновим модал по окончании
-  async function openModal(item){
-    if(!item._discovered && !item._discovering){
-      item._discovering = true;
-      // Fire and forget, but ensure updateModal when complete
-      discoverForItem(item).then(()=> { item._discovering = false; if(currentItem && currentItem.id === item.id) updateModal(); });
-    }
-    currentItem = item; currentIndex = 0; updateModal();
-    modal.classList.remove('modal-exit'); modal.classList.add('modal-enter'); modal.setAttribute('aria-hidden','false'); modal.style.pointerEvents='auto'; document.body.style.overflow='hidden';
+  function showModalSpinner(show){
+    modalLoading.style.display = show ? 'flex' : 'none';
   }
 
   function updateModal(){
     if(!currentItem) return;
-    modalImage.src = currentItem.images[currentIndex] || placeholder;
-    modalImage.onerror = ()=> modalImage.src = placeholder;
+    const imgs = currentItem.images && currentItem.images.length ? currentItem.images : [placeholder];
+    modalImage.src = imgs[currentIndex] || placeholder;
     modalTitle.textContent = currentItem.title || '';
     modalDescription.textContent = currentItem.description || '';
     modalPrice.textContent = currentItem.price || '';
     modalStatus.textContent = currentItem.status || '';
-    modalStatus.className = 'inline-block px-3 py-1 text-xs uppercase font-medium border rounded-sm ' + (currentItem.status === 'В наличии' ? 'border-emerald-600 text-emerald-400' : 'border-amber-500 text-amber-300');
     modalOrderBtn.href = currentItem.orderLink || '#';
-    modalThumbs.innerHTML = (currentItem.images || []).map((s,idx)=>`<img src="${s}" data-idx="${idx}" onerror="this.src='${placeholder}'">`).join('');
+    modalThumbs.innerHTML = imgs.map((s,idx)=>`<img src="${s}" data-idx="${idx}" onerror="this.src='${placeholder}'">`).join('');
   }
 
-  function closeModal(){ modal.classList.remove('modal-enter'); modal.classList.add('modal-exit'); modal.setAttribute('aria-hidden','true'); modal.style.pointerEvents='none'; document.body.style.overflow=''; currentItem = null; }
+  function openModal(item){
+    currentItem = item;
+    currentIndex = 0;
+    // show spinner only if images not loaded yet
+    const needLoading = !(item.images && item.images.length);
+    showModalSpinner(needLoading);
+    updateModal();
+    modal.classList.remove('modal-exit'); modal.classList.add('modal-enter'); modal.setAttribute('aria-hidden','false'); modal.style.pointerEvents='auto'; document.body.style.overflow='hidden';
+    // If images empty (shouldn't because we filled from manifest), try to fetch directory live as fallback
+    if((!item.images || item.images.length === 0) && !item._fetching){
+      item._fetching = true;
+      listDir(`${itemsPrefix}${item.id}`).then(entries => {
+        const imgs = buildImagesFromEntries(entries);
+        if(imgs.length){
+          item.images = imgs;
+          updateCardThumb(item.id, imgs[0]);
+          if(currentItem && currentItem.id === item.id){
+            showModalSpinner(false);
+            updateModal();
+          }
+        } else {
+          showModalSpinner(false);
+        }
+      }).catch(()=> showModalSpinner(false)).finally(()=> item._fetching = false);
+    } else {
+      showModalSpinner(false);
+    }
+  }
+
+  function closeModal(){ modal.classList.remove('modal-enter'); modal.classList.add('modal-exit'); modal.setAttribute('aria-hidden','true'); modal.style.pointerEvents='none'; document.body.style.overflow=''; currentItem=null; }
   function showIndex(i){ if(!currentItem) return; if(i<0) i = currentItem.images.length-1; if(i>=currentItem.images.length) i=0; currentIndex=i; updateModal(); }
 
   function attachGridHandlers(){
     const grid = document.getElementById('portfolio-grid');
-    grid.querySelectorAll('.portfolio-card').forEach(card => {
-      card.addEventListener('click', async ()=> {
+    grid.querySelectorAll('.portfolio-card').forEach(card=>{
+      card.addEventListener('click', () => {
         const id = +card.dataset.id;
         const item = window.portfolioItems.find(p=>p.id===id);
-        if(item) openModal(item); // не ждём полного discovery
+        if(item) openModal(item);
       });
-      card.addEventListener('keydown', async (e) => {
+      card.addEventListener('keydown', (e) => {
         if(e.key === 'Enter' || e.key === ' ') {
           const id = +card.dataset.id;
           const item = window.portfolioItems.find(p=>p.id===id);
@@ -299,6 +290,13 @@
     });
   }
 
+  // utility: update card thumb
+  function updateCardThumb(itemId, url){
+    const img = document.querySelector(`#portfolio-grid article[data-id="${itemId}"] img`);
+    if(img) img.src = url;
+  }
+
+  // modal controls
   document.getElementById('modal-close').addEventListener('click', closeModal);
   modal.addEventListener('click', (e)=> { if(e.target === modal) closeModal(); });
   document.addEventListener('keydown', (e)=> { if(e.key === 'Escape') closeModal(); if(e.key === 'ArrowLeft') showIndex(currentIndex-1); if(e.key === 'ArrowRight') showIndex(currentIndex+1); });
@@ -306,29 +304,89 @@
   if(nextBtn) nextBtn.addEventListener('click', ()=> showIndex(currentIndex+1));
   modalThumbs.addEventListener('click', (e)=> { const img = e.target.closest('img'); if(!img) return; showIndex(+img.dataset.idx); });
 
-  // старт: рендерим и запускаем discovery в фоне с ограничением параллелизма
-  renderGrid();
-  (async function init(){
-    try{
-      const heroList = await discoverHeroLocal();
-      startHeroRotation(heroList);
+  // hero discovery & rotation
+  function buildImagesFromEntries(entries){
+    return entries
+      .filter(e => e.type === 'file' && typeof e.name === 'string' )
+      .filter(e => exts.some(ext => e.name.toLowerCase().endsWith('.'+ext)))
+      .sort((a,b)=> a.name.localeCompare(b.name, undefined, { numeric:true, sensitivity:'base' }))
+      .map(e => rawBase + e.path);
+  }
+  function startHeroRotation(list){
+    const heroEl = document.getElementById('hero-img');
+    const fallback = document.getElementById('hero-fallback');
+    if(!list || list.length === 0){ heroEl.style.display='none'; fallback.style.display='block'; return; }
+    fallback.style.display='none'; heroEl.style.display='block';
+    let idx=0; heroEl.src = list[0];
+    setInterval(()=>{ idx=(idx+1)%list.length; heroEl.style.opacity='0'; setTimeout(()=>{ heroEl.src=list[idx]; heroEl.style.opacity='1'; },260); }, 3000);
+  }
 
-      // discover in parallel (concurrency 3) — быстрее, не блокирует UI
-      await discoverAllItemsParallel(3);
-      // обновляем превьюы по окончании (вдобавок они обновляются по мере нахождения)
-      for(const it of window.portfolioItems){
-        const real = it.images.find(s=>s && !s.startsWith('data:'));
-        if(real) updateCardThumb(it.id, real);
+  // initial render + use manifest to set thumbs
+  renderGrid();
+
+  // After render, set thumbs using manifest (already populated above)
+  window.portfolioItems.forEach(it => {
+    if(it.images && it.images.length) updateCardThumb(it.id, it.images[0]);
+  });
+
+  // load hero images from manifest if present; if manifest had hero, start rotation
+  (function applyHero(){
+    try{
+      const cache = JSON.parse(localStorage.getItem('onv_manifest_v1') || '{}');
+      const data = cache.data || {};
+      const heroList = data.hero || [];
+      if(heroList.length){
+        // raw URLs already built in manifest earlier - if not, convert names to rawBase path
+        const resolved = heroList.map(p => p.startsWith('http') ? p : rawBase + p);
+        startHeroRotation(resolved);
+      } else {
+        // try fetch hero dir live (fast)
+        listDir(heroPath).then(entries => {
+          const files = entries.filter(e => e.type === 'file').filter(e=>exts.some(ext=>e.name.toLowerCase().endsWith('.'+ext))).sort((a,b)=>a.name.localeCompare(b.name, undefined, {numeric:true})).map(e=> rawBase + e.path);
+          startHeroRotation(files);
+        });
       }
-    }catch(e){
-      console.error('Init discovery error', e);
-    } finally {
-      document.getElementById('year').textContent = new Date().getFullYear();
-    }
+    }catch(e){ console.warn('hero apply error', e); }
   })();
 
-  // expose for debugging/guards
-  window.closeModal = closeModal;
+  // utility: rawBase used above; define now
+  const rawBase = `https://raw.githubusercontent.com/${owner}/${repo}/${branch}/`;
+
+  // Helper to fetch dir on demand (used as fallback)
+  async function listDir(path){
+    const url = baseApi + encodeURIComponent(path) + `?ref=${branch}`;
+    try{
+      const res = await fetch(url, { headers: { 'Accept': 'application/vnd.github.v3+json' }});
+      if(!res.ok) return [];
+      const json = await res.json();
+      return Array.isArray(json) ? json : [];
+    }catch(e){ console.warn('listDir fetch error', e); return []; }
+  }
+
+  // If manifest was older than TTL or absent, background-refresh it (so next visit is fast)
+  (async function refreshManifestInBackground(){
+    try{
+      const nowManifest = readCache ? readCache() : null;
+      // do not block UI; try to fetch again and rewrite cache
+      const paths = [heroPath];
+      for(let i=1;i<=8;i++) paths.push(`${itemsPrefix}${i}`);
+      const promises = paths.map(p => listDir(p));
+      const results = await Promise.all(promises);
+      const fresh = { hero: buildImagesFromEntries(results[0] || []), items: {} };
+      for(let i=1;i<=8;i++){
+        fresh.items['item-'+i] = buildImagesFromEntries(results[i] || []);
+      }
+      writeCache && writeCache(fresh);
+    }catch(e){ /* ignore background errors */ }
+  })();
+
+  // helpers for cache read/write used above - re-declare here for scoping
+  function readCache(){ try{ const raw = localStorage.getItem('onv_manifest_v1'); if(!raw) return null; const obj = JSON.parse(raw); if(Date.now() - obj.ts > 10*60*1000) return null; return obj; }catch(e){return null;} }
+  function writeCache(data){ try{ localStorage.setItem('onv_manifest_v1', JSON.stringify({ ts: Date.now(), data })); }catch(e){} }
+
+  // finally, set year
+  document.getElementById('year').textContent = new Date().getFullYear();
+
 })();
 </script>
 </body>
