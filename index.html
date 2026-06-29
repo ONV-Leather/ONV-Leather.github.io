@@ -8,7 +8,7 @@
   <!-- Tailwind CDN -->
   <script src="https://cdn.tailwindcss.com"></script>
 
-  <!-- Fonts -->
+  <!-- Fonts (will use Google as fallback; вы можете заменить локальными файлами позже) -->
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600&family=Playfair+Display:wght@400;600&display=swap" rel="stylesheet">
 
   <script>
@@ -26,9 +26,6 @@
           fontFamily: {
             display: ['"Playfair Display"', 'serif'],
             body: ['"Inter"', 'system-ui', 'sans-serif']
-          },
-          letterSpacing: {
-            deco: '0.2em'
           }
         }
       }
@@ -39,93 +36,55 @@
     :root { color-scheme: dark; }
     html,body { height:100%; }
     body {
-      font-family: Inter, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial;
       margin:0;
+      font-family: Inter, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial;
+      background:
+        radial-gradient(circle at 20% 15%, rgba(255,255,255,0.03) 0%, transparent 25%),
+        linear-gradient(160deg, #102635 0%, #184054 45%, #223d56 100%);
       color: #efe8db;
       -webkit-font-smoothing:antialiased;
       -moz-osx-font-smoothing:grayscale;
-
-      /* Благородный синий фон с полуглянцем:
-         - базовый градиент в синих тонах
-         - радиальные полуглянцевые блики сверху/сбоку
-         - тонкая текстура (легкий шум) можно добавить позже при желании
-      */
-      background:
-        radial-gradient(circle at 20% 15%, rgba(255,255,255,0.03) 0%, transparent 25%),
-        radial-gradient(circle at 80% 80%, rgba(255,255,255,0.02) 0%, transparent 30%),
-        linear-gradient(160deg, #102635 0%, #184054 45%, #223d56 100%);
-      min-height: 100vh;
     }
 
-    /* Арт-деко тонкая рамка */
-    .deco-frame {
-      border: 1px solid rgba(196,163,90,0.14);
-      box-shadow: 0 2px 0 rgba(196,163,90,0.02) inset;
-      position: relative;
-    }
-    .deco-corner {
-      position: absolute;
-      width: 40px;
-      height: 40px;
-      border-color: rgba(196,163,90,0.35);
-    }
+    /* art-deco corner accents */
+    .deco-frame { border: 1px solid rgba(196,163,90,0.14); position: relative; overflow: hidden; }
+    .deco-corner { position:absolute; width:40px;height:40px; border-color: rgba(196,163,90,0.35); }
     .deco-corner.tl { top:-1px; left:-1px; border-top:1px solid; border-left:1px solid; }
     .deco-corner.tr { top:-1px; right:-1px; border-top:1px solid; border-right:1px solid; }
     .deco-corner.bl { bottom:-1px; left:-1px; border-bottom:1px solid; border-left:1px solid; }
     .deco-corner.br { bottom:-1px; right:-1px; border-bottom:1px solid; border-right:1px solid; }
 
-    /* hero background fallback and overlay: более светлый полуглянец */
-    .hero {
-      background-size: cover;
-      background-position: center;
-      position: relative;
-    }
-    .overlay {
-      position: absolute; inset:0;
-      background: linear-gradient(180deg, rgba(10,18,26,0.35), rgba(8,14,18,0.5));
-      mix-blend-mode: multiply;
-      pointer-events: none;
-    }
-
-    /* subtle glossy stripe on hero */
-    .hero::after {
-      content: '';
-      position: absolute;
-      left: -10%;
-      top: 8%;
-      width: 120%;
-      height: 36%;
-      background: linear-gradient(90deg, rgba(255,255,255,0.02), rgba(255,255,255,0.06), rgba(255,255,255,0.02));
-      transform: rotate(-6deg);
-      pointer-events: none;
-      mix-blend-mode: overlay;
+    /* hero image container */
+    .hero-img {
+      width:100%;
+      height:72vh;
+      object-fit:contain; /* сохраняет полный вид шляпы без обрезки */
+      object-position: center 60%; /* тонкая настройка фокусной точки */
+      transition: opacity .6s ease;
+      display:block;
+      margin:0 auto;
+      max-height:80vh;
     }
 
-    /* card hover effect */
+    /* fade helper for rotation */
+    .fade-enter { opacity: 0; }
+    .fade-enter-active { opacity: 1; transition: opacity .6s ease; }
+    .fade-exit { opacity: 1; }
+    .fade-exit-active { opacity: 0; transition: opacity .6s ease; }
+
+    /* cards */
     .portfolio-card {
       transition: transform .36s cubic-bezier(.2,.9,.2,1), box-shadow .36s ease, border-color .36s ease;
       background: linear-gradient(180deg, rgba(10,16,20,0.55), rgba(8,12,14,0.45));
     }
     .portfolio-card:hover {
-      transform: translateY(-8px);
-      box-shadow: 0 20px 50px rgba(2,6,10,0.6);
+      transform: translateY(-6px);
+      box-shadow: 0 20px 40px rgba(2,6,10,0.6);
       border-color: rgba(196,163,90,0.85);
     }
 
-    /* modal transitions */
-    .modal-enter { opacity:1; pointer-events:auto; transform: translateY(0); }
-    .modal-exit { opacity:0; pointer-events:none; transform: translateY(8px); }
-
-    /* small utilities */
+    .muted { color: rgba(245,240,232,0.65); }
     .gold-text { color: #C4A35A; }
-    .muted { color: rgba(245,240,232,0.6); }
-
-    /* responsive tweaks for contrast on blue background */
-    header .font-display { color: #DCCF9F; }
-    .font-display { color: #efe8db; }
-    .text-deco-gold { color: #C4A35A; }
-    .text-deco-warm { color: rgba(245,240,232,0.95); }
-    footer { background: linear-gradient(180deg, rgba(8,14,18,0.18), rgba(8,14,18,0.06)); }
   </style>
 </head>
 <body class="antialiased">
@@ -133,7 +92,7 @@
   <!-- HEADER -->
   <header class="fixed w-full z-40">
     <div class="backdrop-blur-md bg-black/20 border-b border-deco-gold/8">
-      <div class="max-w-6xl mx-auto px-5 md:px-8 lg:px-12 flex items-center justify-between h-16">
+      <div class="max-w-7xl mx-auto px-5 md:px-8 lg:px-12 flex items-center justify-between h-16">
         <a href="#" class="flex items-baseline gap-3" aria-label="На главную KAIZEN & DECO">
           <span class="font-display text-deco-gold text-xl md:text-2xl tracking-wide">KAIZEN & DECO</span>
           <span class="text-sm muted hidden sm:inline">/ Leatherworks</span>
@@ -145,12 +104,8 @@
           <a href="#contacts" class="hover:text-deco-gold transition-colors">Контакты</a>
         </nav>
 
-        <button id="menu-toggle" class="md:hidden p-2" aria-label="Открыть меню" aria-expanded="false">
-          <svg width="24" height="12" viewBox="0 0 24 12" fill="none" xmlns="http://www.w3.org/2000/svg"><rect width="24" height="2" rx="1" class="gold-text" fill="#C4A35A"/><rect y="5" width="16" height="2" rx="1" fill="#C4A35A"/><rect y="10" width="24" height="2" rx="1" fill="#C4A35A"/></svg>
-        </button>
+        <button id="menu-toggle" class="md:hidden p-2" aria-label="Открыть меню" aria-expanded="false">☰</button>
       </div>
-
-      <!-- mobile menu -->
       <div id="mobile-menu" class="md:hidden hidden bg-black/40 border-t border-deco-gold/8">
         <div class="px-5 py-6 flex flex-col gap-4 text-lg uppercase">
           <a href="#catalog" class="mobile-link">Каталог</a>
@@ -163,10 +118,8 @@
 
   <main class="pt-20">
 
-    <!-- HERO -->
-    <section id="hero" class="relative min-h-[62vh] flex items-center justify-center hero deco-frame overflow-hidden" style="background-image: url('assets/images/Hat1.png'), url('https://images.unsplash.com/photo-1521369909029-2aed41daa610?w=1600&h=900&fit=crop&crop=entropy');">
-      <div class="overlay"></div>
-
+    <!-- HERO with rotating images (3 local images) -->
+    <section id="hero" class="relative deco-frame mb-6">
       <div class="absolute inset-0 pointer-events-none">
         <div class="deco-corner tl"></div>
         <div class="deco-corner tr"></div>
@@ -174,37 +127,44 @@
         <div class="deco-corner br"></div>
       </div>
 
-      <div class="relative z-20 max-w-4xl mx-auto text-center px-6 py-16">
-        <h1 class="font-display text-3xl md:text-5xl lg:text-6xl leading-tight text-deco-warm/95">
-          Австралийские шляпы и аксессуары<br class="hidden sm:block">из натуральной кожи
-        </h1>
-        <p class="mt-4 max-w-2xl mx-auto muted">
-          Ручная работа. Кожа растительного дубления. Философия Kaizen и ваби‑саби в каждой строчке шва.
-        </p>
+      <div class="max-w-6xl mx-auto px-5 md:px-8 lg:px-12 py-8 flex flex-col items-center">
+        <!-- image container -->
+        <div class="w-full flex items-center justify-center relative">
+          <!-- We'll swap the src of #hero-img every 3s with a smooth fade -->
+          <img id="hero-img" class="hero-img z-10" src="assets/images/hero/hat1.jpg" alt="Шляпа KAIZEN & DECO" loading="lazy" />
+        </div>
 
-        <div class="mt-8 flex justify-center">
-          <a href="#catalog" class="inline-flex items-center gap-3 px-6 py-3 border border-deco-gold/60 text-deco-gold hover:bg-deco-gold hover:text-black transition-all rounded-sm uppercase tracking-wider">
-            Смотреть коллекцию
-          </a>
+        <!-- Content overlay (title) -->
+        <div class="relative z-20 text-center mt-6">
+          <h1 class="font-display text-3xl md:text-5xl lg:text-6xl leading-tight text-deco-warm/95">
+            Австралийские шляпы и аксессуары<br class="hidden sm:block">из натуральной кожи
+          </h1>
+          <p class="mt-4 muted max-w-2xl mx-auto">
+            Ручная работа. Кожа растительного дубления. Философия Kaizen и Wabi‑Sabi в каждом стежке.
+          </p>
+
+          <div class="mt-6">
+            <a href="#catalog" class="inline-flex items-center gap-3 px-6 py-3 border border-deco-gold/60 text-deco-gold hover:bg-deco-gold hover:text-black transition-all rounded-sm uppercase tracking-wider">Смотреть коллекцию</a>
+          </div>
         </div>
       </div>
     </section>
 
-    <!-- PORTFOLIO -->
-    <section id="catalog" class="py-20 px-5 md:px-8 lg:px-12 max-w-7xl mx-auto">
-      <div class="text-center mb-12">
+    <!-- PORTFOLIO: 8 items grid -->
+    <section id="catalog" class="py-10 px-5 md:px-8 lg:px-12 max-w-7xl mx-auto">
+      <div class="text-center mb-8">
         <div class="text-sm text-deco-gold/70 uppercase tracking-wide">Коллекция</div>
-        <h2 class="font-display text-3xl md:text-4xl mt-4">Избранные работы</h2>
+        <h2 class="font-display text-3xl md:text-4xl mt-3">Избранные работы</h2>
       </div>
 
-      <div id="portfolio-grid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-        <!-- карточки генерируются JS -->
+      <div id="portfolio-grid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+        <!-- JS will render 8 cards -->
       </div>
     </section>
 
     <!-- ABOUT -->
-    <section id="about" class="py-16 bg-[linear-gradient(145deg,#0f2a3b,#163a4a)]">
-      <div class="max-w-6xl mx-auto px-5 md:px-8 lg:px-12 flex flex-col lg:flex-row gap-10 items-center">
+    <section id="about" class="py-14 bg-[linear-gradient(145deg,#0f2a3b,#163a4a)]">
+      <div class="max-w-6xl mx-auto px-5 md:px-8 lg:px-12 flex flex-col lg:flex-row gap-8 items-center">
         <div class="lg:w-1/2">
           <div class="aspect-[4/5] rounded-sm overflow-hidden border border-deco-gold/15">
             <img src="https://images.unsplash.com/photo-1527689368864-3a821dbccc34?w=900&h=1100&fit=crop&crop=entropy" alt="Мастерская" class="w-full h-full object-cover">
@@ -225,14 +185,13 @@
       </div>
     </section>
 
-    <!-- CONTACTS / FOOTER -->
-    <footer id="contacts" class="py-12 px-5 md:px-8 lg:px-12 border-t border-deco-gold/8">
+    <!-- FOOTER -->
+    <footer id="contacts" class="py-10 px-5 md:px-8 lg:px-12 border-t border-deco-gold/8">
       <div class="max-w-6xl mx-auto flex flex-col md:flex-row justify-between items-center gap-6">
         <div>
           <div class="font-display text-deco-gold text-xl">KAIZEN & DECO</div>
           <div class="muted text-sm mt-2">© <span id="year"></span> · Все права защищены</div>
         </div>
-
         <div class="flex flex-col items-center md:items-end gap-3">
           <div class="uppercase text-xs text-deco-gold/70 tracking-wide">Связь</div>
           <div class="flex gap-5 mt-2">
@@ -246,7 +205,7 @@
 
   </main>
 
-  <!-- MODAL -->
+  <!-- MODAL for product gallery -->
   <div id="product-modal" class="fixed inset-0 z-50 flex items-center justify-center p-4 modal-exit bg-black/70 backdrop-blur-sm pointer-events-none" aria-hidden="true">
     <div class="relative bg-[#091118] border border-deco-gold/15 max-w-4xl w-full rounded-sm shadow-2xl overflow-hidden">
       <button id="modal-close" aria-label="Закрыть" class="absolute top-3 right-3 text-deco-gold text-2xl">✕</button>
@@ -258,7 +217,6 @@
             <button id="prev-image" class="absolute left-2 top-1/2 -translate-y-1/2 px-2 py-1 bg-black/50 text-deco-gold rounded-sm">‹</button>
             <button id="next-image" class="absolute right-2 top-1/2 -translate-y-1/2 px-2 py-1 bg-black/50 text-deco-gold rounded-sm">›</button>
           </div>
-
           <div id="modal-thumbs" class="mt-3 flex gap-2 overflow-x-auto p-1"></div>
         </div>
 
@@ -275,113 +233,78 @@
             <a id="modal-order-btn" href="#" target="_blank" rel="noopener" class="inline-flex items-center gap-3 px-5 py-3 border border-deco-gold/70 text-deco-gold hover:bg-deco-gold hover:text-black transition-all uppercase tracking-wider rounded-sm">
               Заказать
             </a>
-            <div class="text-xs muted mt-2">Свяжитесь через Telegram или WhatsApp для уточнения деталей</div>
+            <div class="text-xs muted mt-2">Связь через Telegram или WhatsApp для уточнения деталей</div>
           </div>
         </div>
       </div>
     </div>
   </div>
 
-  <!-- SCRIPTS -->
+  <!-- SCRIPT: portfolio, modal, hero rotation -->
   <script>
     (function(){
+      // --- CONFIG: images should be uploaded to these paths in the repo ---
+      // Hero background images (3 local files)
+      const heroImages = [
+        'assets/images/hero/hat1.jpg',
+        'assets/images/hero/hat2.jpg',
+        'assets/images/hero/hat3.jpg'
+      ];
+      // Portfolio items (8 items), each uses images from a dedicated folder assets/images/item-N/
       const portfolioItems = [
-        {
-          id:1,
-          title: 'Классическая акубра',
-          price: '14 500 ₽',
-          status: 'В наличии',
-          statusColor: 'border-emerald-600/60 text-emerald-400',
-          images: [
-            'https://images.unsplash.com/photo-1588854337115-1c67d1a98b71?w=1200&h=1200&fit=crop&crop=entropy',
-            'https://images.unsplash.com/photo-1522335789203-aabd1fc54bc9?w=1200&h=900&fit=crop&crop=entropy',
-            'https://images.unsplash.com/photo-1601758228041-f3b2795255f1?w=1200&h=900&fit=crop&crop=entropy'
-          ],
-          description: 'Австралийская шляпа из плотной кожи растительного дубления. Седловый шов, латунная фурнитура, высота тульи ~11 см.',
-          orderLink: 'https://t.me/your_telegram'
+        { id:1, title:'Классическая акубра', price:'14 500 ₽', status:'В наличии',
+          images: ['assets/images/item-1/01.jpg','assets/images/item-1/02.jpg','assets/images/item-1/03.jpg'],
+          description:'Австралийская акубра, кожа растительного дубления, седловый шов.', orderLink:'https://t.me/your_telegram'
         },
-        {
-          id:2,
-          title: 'Федора ручной формовки',
-          price: '12 000 ₽',
-          status: 'В наличии',
-          images: [
-            'https://images.unsplash.com/photo-1551028719-00167b16eac5?w=1200&h=1200&fit=crop&crop=entropy',
-            'https://images.unsplash.com/photo-1553062407-98eeb64c6a62?w=1200&h=900&fit=crop&crop=entropy'
-          ],
-          description: 'Федора из мягкой кожи, подкладка из хлопка, поля 7 см, ручная формовка и отделка.',
-          orderLink: 'https://t.me/your_telegram'
+        { id:2, title:'Федора ручной формовки', price:'12 000 ₽', status:'В наличии',
+          images: ['assets/images/item-2/01.jpg','assets/images/item-2/02.jpg'],
+          description:'Федора из мягкой кожи, поля 7 см, подкладка хлопок.', orderLink:'https://t.me/your_telegram'
         },
-        {
-          id:3,
-          title: 'Сумка-тоут',
-          price: '18 000 ₽',
-          status: 'Под заказ',
-          images: [
-            'https://images.unsplash.com/photo-1590874103328-eac38a683ce7?w=1200&h=1200&fit=crop&crop=entropy',
-            'https://images.unsplash.com/photo-1540574163026-643ea20ade25?w=1200&h=900&fit=crop&crop=entropy'
-          ],
-          description: 'Тоут из коричневой кожи, усиленные ручки, внутренний карман на молнии. 40×30×15 см.',
-          orderLink: 'https://wa.me/your_number'
+        { id:3, title:'Сумка-тоут', price:'18 000 ₽', status:'Под заказ',
+          images: ['assets/images/item-3/01.jpg','assets/images/item-3/02.jpg'],
+          description:'Вместительный тоут, усиленные ручки, внутренний карман на молнии.', orderLink:'https://wa.me/your_number'
         },
-        {
-          id:4,
-          title: 'Ремень ручной выделки',
-          price: '8 500 ₽',
-          status: 'В наличии',
-          images: [
-            'https://images.unsplash.com/photo-1553062407-98eeb64c6a62?w=1200&h=900&fit=crop&crop=entropy',
-            'https://images.unsplash.com/photo-1601758228041-f3b2795255f1?w=1200&h=900&fit=crop&crop=entropy'
-          ],
-          description: 'Воловья кожа, латунная пряжка, седловый шов вощёной ниткой. Ширина 35 мм.',
-          orderLink: 'https://t.me/your_telegram'
+        { id:4, title:'Ремень ручной выделки', price:'8 500 ₽', status:'В наличии',
+          images: ['assets/images/item-4/01.jpg','assets/images/item-4/02.jpg'], description:'Воловья кожа, седловый шов.', orderLink:'https://t.me/your_telegram'
         },
-        {
-          id:5,
-          title: 'Кошелёк-кардхолдер',
-          price: '4 200 ₽',
-          status: 'В наличии',
-          images: [
-            'https://images.unsplash.com/photo-1601758228041-f3b2795255f1?w=1200&h=1200&fit=crop&crop=entropy',
-            'https://images.unsplash.com/photo-1522335789203-aabd1fc54bc9?w=1200&h=900&fit=crop&crop=entropy'
-          ],
-          description: 'Компактный кардхолдер из кожи растительного дубления. 4 отделения для карт.',
-          orderLink: 'https://t.me/your_telegram'
+        { id:5, title:'Кошелёк-кардхолдер', price:'4 200 ₽', status:'В наличии',
+          images: ['assets/images/item-5/01.jpg','assets/images/item-5/02.jpg'], description:'Компактный кардхолдер, 4 отделения.', orderLink:'https://t.me/your_telegram'
         },
-        {
-          id:6,
-          title: 'Шляпа-ковбой',
-          price: '15 800 ₽',
-          status: 'Под заказ',
-          images: [
-            'https://images.unsplash.com/photo-1521369909029-2aed41daa610?w=1200&h=1200&fit=crop&crop=entropy',
-            'https://images.unsplash.com/photo-1551028719-00167b16eac5?w=1200&h=900&fit=crop&crop=entropy'
-          ],
-          description: 'Кожаная шляпа с загнутыми полями, глубокая посадка, кожаный шнурок, защита от солнца и ветра.',
-          orderLink: 'https://t.me/your_telegram'
+        { id:6, title:'Шляпа-ковбой', price:'15 800 ₽', status:'Под заказ',
+          images: ['assets/images/item-6/01.jpg','assets/images/item-6/02.jpg'], description:'Кожаная шляпа с загнутыми полями, глубокая посадка.', orderLink:'https://t.me/your_telegram'
+        },
+        { id:7, title:'Классический портфель', price:'22 000 ₽', status:'Под заказ',
+          images: ['assets/images/item-7/01.jpg','assets/images/item-7/02.jpg'], description:'Портфель из плотной кожи, ручная прошивка.', orderLink:'https://wa.me/your_number'
+        },
+        { id:8, title:'Мини-поясная сумка', price:'6 200 ₽', status:'В наличии',
+          images: ['assets/images/item-8/01.jpg','assets/images/item-8/02.jpg'], description:'Компактная сумка через плечо, латунная фурнитура.', orderLink:'https://t.me/your_telegram'
         }
       ];
 
-      // render cards
+      // --- RENDER portfolio grid ---
       const grid = document.getElementById('portfolio-grid');
-      grid.innerHTML = portfolioItems.map(item => {
-        return `
-          <article class="portfolio-card deco-frame rounded-sm overflow-hidden border border-transparent cursor-pointer" tabindex="0" data-id="${item.id}" role="button" aria-label="Открыть ${item.title}">
-            <div class="aspect-[3/4] overflow-hidden relative">
-              <img src="${item.images[0]}" alt="${item.title}" class="w-full h-full object-cover transition-transform duration-700 ease-out hover:scale-105">
-            </div>
-            <div class="p-4 flex flex-col h-36">
-              <h3 class="font-display text-lg text-deco-warm/95">${item.title}</h3>
-              <div class="mt-2 flex items-center justify-between">
-                <div class="text-deco-gold font-semibold">${item.price}</div>
-                <div class="text-xs muted uppercase">Подробнее →</div>
+      function renderGrid(){
+        grid.innerHTML = portfolioItems.map(item => {
+          const thumb = item.images && item.images.length ? item.images[0] : 'assets/images/placeholder.jpg';
+          return `
+            <article class="portfolio-card deco-frame rounded-sm overflow-hidden border border-transparent cursor-pointer" tabindex="0" data-id="${item.id}" role="button" aria-label="Открыть ${item.title}">
+              <div class="aspect-[3/4] overflow-hidden relative">
+                <img src="${thumb}" alt="${item.title}" class="w-full h-full object-cover transition-transform duration-700 ease-out hover:scale-105" loading="lazy">
               </div>
-            </div>
-          </article>
-        `;
-      }).join('');
+              <div class="p-4 flex flex-col h-36">
+                <h3 class="font-display text-lg text-deco-warm/95">${item.title}</h3>
+                <div class="mt-2 flex items-center justify-between">
+                  <div class="text-deco-gold font-semibold">${item.price}</div>
+                  <div class="text-xs muted uppercase">Подробнее →</div>
+                </div>
+              </div>
+            </article>
+          `;
+        }).join('');
+      }
+      renderGrid();
 
-      // modal elements
+      // --- MODAL logic (reuse previous modal behavior) ---
       const modal = document.getElementById('product-modal');
       const modalImage = document.getElementById('modal-image');
       const modalTitle = document.getElementById('modal-title');
@@ -400,7 +323,7 @@
       function openModal(item) {
         currentItem = item;
         currentIndex = 0;
-        modalImage.src = item.images[0];
+        modalImage.src = item.images[currentIndex] || '';
         modalImage.alt = item.title;
         modalTitle.textContent = item.title;
         modalDescription.textContent = item.description;
@@ -408,10 +331,7 @@
         modalStatus.textContent = item.status;
         modalStatus.className = 'inline-block px-3 py-1 text-xs uppercase font-medium border rounded-sm ' + (item.status === 'В наличии' ? 'border-emerald-600 text-emerald-400' : 'border-amber-500 text-amber-300');
         modalOrderBtn.href = item.orderLink || '#';
-
-        // thumbs
-        modalThumbs.innerHTML = item.images.map((src, idx) => `<img src="${src}" data-idx="${idx}" class="w-20 h-12 object-cover rounded-sm cursor-pointer ${idx===0? 'ring-2 ring-deco-gold':''}">`).join('');
-
+        modalThumbs.innerHTML = (item.images || []).map((src, idx) => `<img src="${src}" data-idx="${idx}" class="w-20 h-12 object-cover rounded-sm cursor-pointer ${idx===0? 'ring-2 ring-deco-gold':''}" loading="lazy">`).join('');
         modal.classList.remove('modal-exit');
         modal.classList.add('modal-enter');
         modal.style.pointerEvents = 'auto';
@@ -433,13 +353,10 @@
         if (i >= currentItem.images.length) i = 0;
         currentIndex = i;
         modalImage.src = currentItem.images[currentIndex];
-        // highlight thumb
-        Array.from(modalThumbs.children).forEach((el, idx) => {
-          el.classList.toggle('ring-2', idx === currentIndex);
-        });
+        Array.from(modalThumbs.children).forEach((el, idx) => el.classList.toggle('ring-2', idx === currentIndex));
       }
 
-      // grid click / keyboard
+      // grid interactions (click / keyboard)
       grid.addEventListener('click', (e) => {
         const card = e.target.closest('.portfolio-card');
         if (!card) return;
@@ -457,7 +374,7 @@
         }
       });
 
-      // modal interactions
+      // modal controls
       prevBtn.addEventListener('click', () => showIndex(currentIndex - 1));
       nextBtn.addEventListener('click', () => showIndex(currentIndex + 1));
       modalThumbs.addEventListener('click', (e) => {
@@ -467,24 +384,44 @@
         showIndex(idx);
       });
       modalClose.addEventListener('click', closeModal);
-      modal.addEventListener('click', (e) => {
-        if (e.target === modal) closeModal();
-      });
+      modal.addEventListener('click', (e) => { if (e.target === modal) closeModal(); });
       document.addEventListener('keydown', (e) => {
         if (e.key === 'Escape') closeModal();
         if (e.key === 'ArrowLeft') showIndex(currentIndex - 1);
         if (e.key === 'ArrowRight') showIndex(currentIndex + 1);
       });
 
-      // mobile menu
+      // --- HERO rotation (3 images, every 3 seconds) with fade ---
+      const heroImgEl = document.getElementById('hero-img');
+      let heroIndex = 0;
+      function rotateHero() {
+        const next = (heroIndex + 1) % heroImages.length;
+        // fade out -> change -> fade in
+        heroImgEl.classList.add('fade-exit-active');
+        setTimeout(() => {
+          heroImgEl.src = heroImages[next];
+          heroImgEl.classList.remove('fade-exit-active');
+          heroImgEl.classList.add('fade-enter-active');
+          setTimeout(() => {
+            heroImgEl.classList.remove('fade-enter-active');
+          }, 650);
+          heroIndex = next;
+        }, 300);
+      }
+      // start rotation after small delay to ensure initial load
+      setTimeout(() => {
+        setInterval(rotateHero, 3000);
+      }, 1200);
+
+      // --- Mobile menu toggle ---
       const menuToggle = document.getElementById('menu-toggle');
       const mobileMenu = document.getElementById('mobile-menu');
       const mobileLinks = document.querySelectorAll('.mobile-link');
-
       if (menuToggle) {
         menuToggle.addEventListener('click', () => {
-          const hidden = mobileMenu.classList.toggle('hidden');
-          menuToggle.setAttribute('aria-expanded', !hidden);
+          mobileMenu.classList.toggle('hidden');
+          const expanded = menuToggle.getAttribute('aria-expanded') === 'true';
+          menuToggle.setAttribute('aria-expanded', String(!expanded));
         });
         mobileLinks.forEach(a => a.addEventListener('click', () => {
           mobileMenu.classList.add('hidden');
@@ -492,23 +429,10 @@
         }));
       }
 
-      // smooth scroll
-      document.querySelectorAll('a[href^="#"]').forEach(anchor => {
-        anchor.addEventListener('click', function(e) {
-          const href = this.getAttribute('href');
-          if (href === '#') return;
-          const target = document.querySelector(href);
-          if (target) {
-            e.preventDefault();
-            target.scrollIntoView({ behavior: 'smooth', block: 'start' });
-          }
-        });
-      });
-
-      // copy year
+      // year
       document.getElementById('year').textContent = new Date().getFullYear();
 
-      console.log('Готово: KAIZEN & DECO — локальная версия страницы с синим полуглянцем.');
+      console.log('index.html loaded — hero rotates, portfolio ready. Ensure you uploaded the folders: assets/images/hero/ and assets/images/item-1..item-8/');
     })();
   </script>
 </body>
