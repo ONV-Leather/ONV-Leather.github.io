@@ -3,12 +3,12 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
-  <title>KAIZEN & DECO · Кожаные изделия ручной работы</title>
+  <title>KAIZEN & DECO · Кожа ручной работы</title>
 
   <!-- Tailwind CDN -->
   <script src="https://cdn.tailwindcss.com"></script>
 
-  <!-- Fonts (will use Google as fallback; вы можете заменить локальными файлами позже) -->
+  <!-- Fonts (Google fallback; можно заменить локальными файлами позже) -->
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600&family=Playfair+Display:wght@400;600&display=swap" rel="stylesheet">
 
   <script>
@@ -38,15 +38,15 @@
     body {
       margin:0;
       font-family: Inter, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial;
-      background:
-        radial-gradient(circle at 20% 15%, rgba(255,255,255,0.03) 0%, transparent 25%),
-        linear-gradient(160deg, #102635 0%, #184054 45%, #223d56 100%);
       color: #efe8db;
       -webkit-font-smoothing:antialiased;
       -moz-osx-font-smoothing:grayscale;
+      background:
+        radial-gradient(circle at 20% 15%, rgba(255,255,255,0.03) 0%, transparent 25%),
+        linear-gradient(160deg, #102635 0%, #184054 45%, #223d56 100%);
+      min-height: 100vh;
     }
 
-    /* art-deco corner accents */
     .deco-frame { border: 1px solid rgba(196,163,90,0.14); position: relative; overflow: hidden; }
     .deco-corner { position:absolute; width:40px;height:40px; border-color: rgba(196,163,90,0.35); }
     .deco-corner.tl { top:-1px; left:-1px; border-top:1px solid; border-left:1px solid; }
@@ -54,25 +54,22 @@
     .deco-corner.bl { bottom:-1px; left:-1px; border-bottom:1px solid; border-left:1px solid; }
     .deco-corner.br { bottom:-1px; right:-1px; border-bottom:1px solid; border-right:1px solid; }
 
-    /* hero image container */
+    /* hero image */
     .hero-img {
       width:100%;
       height:72vh;
-      object-fit:contain; /* сохраняет полный вид шляпы без обрезки */
-      object-position: center 60%; /* тонкая настройка фокусной точки */
-      transition: opacity .6s ease;
+      max-height:80vh;
+      object-fit:contain;
+      object-position: center 60%;
       display:block;
       margin:0 auto;
-      max-height:80vh;
+      transition: opacity .6s ease;
     }
 
-    /* fade helper for rotation */
-    .fade-enter { opacity: 0; }
-    .fade-enter-active { opacity: 1; transition: opacity .6s ease; }
-    .fade-exit { opacity: 1; }
-    .fade-exit-active { opacity: 0; transition: opacity .6s ease; }
+    /* fade classes used by rotation */
+    .fade-hidden { opacity: 0; }
+    .fade-visible { opacity: 1; }
 
-    /* cards */
     .portfolio-card {
       transition: transform .36s cubic-bezier(.2,.9,.2,1), box-shadow .36s ease, border-color .36s ease;
       background: linear-gradient(180deg, rgba(10,16,20,0.55), rgba(8,12,14,0.45));
@@ -85,6 +82,15 @@
 
     .muted { color: rgba(245,240,232,0.65); }
     .gold-text { color: #C4A35A; }
+
+    /* ensure modal is hidden initially when modal-exit present */
+    .modal-exit { opacity: 0; pointer-events: none; }
+    .modal-enter { opacity: 1; pointer-events: auto; transition: opacity .25s ease; }
+
+    /* responsive tweaks */
+    @media (max-width: 640px) {
+      .hero-img { height: 48vh; }
+    }
   </style>
 </head>
 <body class="antialiased">
@@ -106,6 +112,7 @@
 
         <button id="menu-toggle" class="md:hidden p-2" aria-label="Открыть меню" aria-expanded="false">☰</button>
       </div>
+
       <div id="mobile-menu" class="md:hidden hidden bg-black/40 border-t border-deco-gold/8">
         <div class="px-5 py-6 flex flex-col gap-4 text-lg uppercase">
           <a href="#catalog" class="mobile-link">Каталог</a>
@@ -118,7 +125,7 @@
 
   <main class="pt-20">
 
-    <!-- HERO with rotating images (3 local images) -->
+    <!-- HERO (rotating 3 images) -->
     <section id="hero" class="relative deco-frame mb-6">
       <div class="absolute inset-0 pointer-events-none">
         <div class="deco-corner tl"></div>
@@ -128,13 +135,11 @@
       </div>
 
       <div class="max-w-6xl mx-auto px-5 md:px-8 lg:px-12 py-8 flex flex-col items-center">
-        <!-- image container -->
         <div class="w-full flex items-center justify-center relative">
-          <!-- We'll swap the src of #hero-img every 3s with a smooth fade -->
-          <img id="hero-img" class="hero-img z-10" src="assets/images/hero/hat1.jpg" alt="Шляпа KAIZEN & DECO" loading="lazy" />
+          <!-- Initial image src must exist in repo: assets/images/hero/hat1.jpg -->
+          <img id="hero-img" class="hero-img fade-visible" src="assets/images/hero/hat1.jpg" alt="Шляпа KAIZEN & DECO" loading="lazy">
         </div>
 
-        <!-- Content overlay (title) -->
         <div class="relative z-20 text-center mt-6">
           <h1 class="font-display text-3xl md:text-5xl lg:text-6xl leading-tight text-deco-warm/95">
             Австралийские шляпы и аксессуары<br class="hidden sm:block">из натуральной кожи
@@ -150,7 +155,7 @@
       </div>
     </section>
 
-    <!-- PORTFOLIO: 8 items grid -->
+    <!-- PORTFOLIO: 8 items -->
     <section id="catalog" class="py-10 px-5 md:px-8 lg:px-12 max-w-7xl mx-auto">
       <div class="text-center mb-8">
         <div class="text-sm text-deco-gold/70 uppercase tracking-wide">Коллекция</div>
@@ -158,7 +163,7 @@
       </div>
 
       <div id="portfolio-grid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-        <!-- JS will render 8 cards -->
+        <!-- JS renders 8 cards -->
       </div>
     </section>
 
@@ -205,10 +210,10 @@
 
   </main>
 
-  <!-- MODAL for product gallery -->
-  <div id="product-modal" class="fixed inset-0 z-50 flex items-center justify-center p-4 modal-exit bg-black/70 backdrop-blur-sm pointer-events-none" aria-hidden="true">
+  <!-- PRODUCT MODAL (initially hidden: modal-exit) -->
+  <div id="product-modal" class="fixed inset-0 z-50 flex items-center justify-center p-4 modal-exit bg-black/70 backdrop-blur-sm" aria-hidden="true">
     <div class="relative bg-[#091118] border border-deco-gold/15 max-w-4xl w-full rounded-sm shadow-2xl overflow-hidden">
-      <button id="modal-close" aria-label="Закрыть" class="absolute top-3 right-3 text-deco-gold text-2xl">✕</button>
+      <button id="modal-close" data-modal-close aria-label="Закрыть" class="absolute top-3 right-3 text-deco-gold text-2xl">✕</button>
 
       <div class="md:flex">
         <div class="md:w-1/2 bg-black/20 p-4">
@@ -240,17 +245,64 @@
     </div>
   </div>
 
-  <!-- SCRIPT: portfolio, modal, hero rotation -->
+  <!-- SCRIPT: modal guard + main logic -->
+  <script>
+    // --- MODAL GUARD: ensure modal hidden on load & robust close handlers ---
+    (function modalGuard() {
+      const modal = document.getElementById('product-modal');
+      if (!modal) return;
+      // Force hidden state
+      modal.classList.remove('modal-enter');
+      modal.classList.add('modal-exit');
+      modal.setAttribute('aria-hidden', 'true');
+      modal.style.pointerEvents = 'none';
+
+      function fallbackClose() {
+        try {
+          if (typeof closeModal === 'function') {
+            closeModal();
+            return;
+          }
+        } catch (e) { /* ignore */ }
+        modal.classList.remove('modal-enter');
+        modal.classList.add('modal-exit');
+        modal.setAttribute('aria-hidden', 'true');
+        modal.style.pointerEvents = 'none';
+        document.body.style.overflow = '';
+      }
+
+      // close on click outside dialog
+      modal.addEventListener('click', (e) => {
+        if (e.target === modal) fallbackClose();
+      });
+
+      // delegate close clicks for elements with data-modal-close
+      document.addEventListener('click', (e) => {
+        const btn = e.target.closest && e.target.closest('[data-modal-close]');
+        if (btn) {
+          e.preventDefault();
+          fallbackClose();
+        }
+      });
+
+      // Escape closes
+      document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape') fallbackClose();
+      });
+
+      console.log('[modalGuard] initialized');
+    })();
+  </script>
+
   <script>
     (function(){
-      // --- CONFIG: images should be uploaded to these paths in the repo ---
-      // Hero background images (3 local files)
+      // --- CONFIG: expected uploaded files in repo ---
       const heroImages = [
         'assets/images/hero/hat1.jpg',
         'assets/images/hero/hat2.jpg',
         'assets/images/hero/hat3.jpg'
       ];
-      // Portfolio items (8 items), each uses images from a dedicated folder assets/images/item-N/
+
       const portfolioItems = [
         { id:1, title:'Классическая акубра', price:'14 500 ₽', status:'В наличии',
           images: ['assets/images/item-1/01.jpg','assets/images/item-1/02.jpg','assets/images/item-1/03.jpg'],
@@ -281,11 +333,11 @@
         }
       ];
 
-      // --- RENDER portfolio grid ---
+      // Render grid
       const grid = document.getElementById('portfolio-grid');
       function renderGrid(){
         grid.innerHTML = portfolioItems.map(item => {
-          const thumb = item.images && item.images.length ? item.images[0] : 'assets/images/placeholder.jpg';
+          const thumb = (item.images && item.images.length) ? item.images[0] : 'assets/images/placeholder.jpg';
           return `
             <article class="portfolio-card deco-frame rounded-sm overflow-hidden border border-transparent cursor-pointer" tabindex="0" data-id="${item.id}" role="button" aria-label="Открыть ${item.title}">
               <div class="aspect-[3/4] overflow-hidden relative">
@@ -304,7 +356,7 @@
       }
       renderGrid();
 
-      // --- MODAL logic (reuse previous modal behavior) ---
+      // Modal elements
       const modal = document.getElementById('product-modal');
       const modalImage = document.getElementById('modal-image');
       const modalTitle = document.getElementById('modal-title');
@@ -332,18 +384,20 @@
         modalStatus.className = 'inline-block px-3 py-1 text-xs uppercase font-medium border rounded-sm ' + (item.status === 'В наличии' ? 'border-emerald-600 text-emerald-400' : 'border-amber-500 text-amber-300');
         modalOrderBtn.href = item.orderLink || '#';
         modalThumbs.innerHTML = (item.images || []).map((src, idx) => `<img src="${src}" data-idx="${idx}" class="w-20 h-12 object-cover rounded-sm cursor-pointer ${idx===0? 'ring-2 ring-deco-gold':''}" loading="lazy">`).join('');
+
+        // show modal
         modal.classList.remove('modal-exit');
         modal.classList.add('modal-enter');
+        modal.setAttribute('aria-hidden', 'false');
         modal.style.pointerEvents = 'auto';
-        modal.setAttribute('aria-hidden','false');
         document.body.style.overflow = 'hidden';
       }
 
       function closeModal() {
         modal.classList.remove('modal-enter');
         modal.classList.add('modal-exit');
+        modal.setAttribute('aria-hidden', 'true');
         modal.style.pointerEvents = 'none';
-        modal.setAttribute('aria-hidden','true');
         document.body.style.overflow = '';
       }
 
@@ -356,7 +410,7 @@
         Array.from(modalThumbs.children).forEach((el, idx) => el.classList.toggle('ring-2', idx === currentIndex));
       }
 
-      // grid interactions (click / keyboard)
+      // grid click / keyboard
       grid.addEventListener('click', (e) => {
         const card = e.target.closest('.portfolio-card');
         if (!card) return;
@@ -391,29 +445,26 @@
         if (e.key === 'ArrowRight') showIndex(currentIndex + 1);
       });
 
-      // --- HERO rotation (3 images, every 3 seconds) with fade ---
+      // HERO rotation (3 images every 3 seconds) with simple fade
       const heroImgEl = document.getElementById('hero-img');
       let heroIndex = 0;
       function rotateHero() {
         const next = (heroIndex + 1) % heroImages.length;
-        // fade out -> change -> fade in
-        heroImgEl.classList.add('fade-exit-active');
+        // fade out
+        heroImgEl.classList.remove('fade-visible');
+        heroImgEl.classList.add('fade-hidden');
         setTimeout(() => {
           heroImgEl.src = heroImages[next];
-          heroImgEl.classList.remove('fade-exit-active');
-          heroImgEl.classList.add('fade-enter-active');
-          setTimeout(() => {
-            heroImgEl.classList.remove('fade-enter-active');
-          }, 650);
+          // fade in
+          heroImgEl.classList.remove('fade-hidden');
+          heroImgEl.classList.add('fade-visible');
           heroIndex = next;
-        }, 300);
+        }, 320);
       }
-      // start rotation after small delay to ensure initial load
-      setTimeout(() => {
-        setInterval(rotateHero, 3000);
-      }, 1200);
+      // start rotation
+      setTimeout(() => { setInterval(rotateHero, 3000); }, 800);
 
-      // --- Mobile menu toggle ---
+      // mobile menu
       const menuToggle = document.getElementById('menu-toggle');
       const mobileMenu = document.getElementById('mobile-menu');
       const mobileLinks = document.querySelectorAll('.mobile-link');
@@ -429,10 +480,10 @@
         }));
       }
 
-      // year
+      // set year
       document.getElementById('year').textContent = new Date().getFullYear();
 
-      console.log('index.html loaded — hero rotates, portfolio ready. Ensure you uploaded the folders: assets/images/hero/ and assets/images/item-1..item-8/');
+      console.log('Site script initialized — modal guarded and hero rotating.');
     })();
   </script>
 </body>
