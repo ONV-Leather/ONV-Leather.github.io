@@ -92,6 +92,7 @@
 
 <script>
 (function(){
+  // настройки
   const exts = ['jpg','jpeg','png','webp'];
   const MAX_PER_ITEM = 15;
   const heroBases = ['Hat1','Hat2','Hat3','hat1','hat2','hat3','01','1'];
@@ -99,18 +100,19 @@
   const itemFolderPrefix = 'assets/images/item-';
   const placeholder = 'data:image/svg+xml;utf8,' + encodeURIComponent(`<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="900"><rect width="100%" height="100%" fill="#222831"/><text x="50%" y="50%" fill="#9aa0a6" font-size="28" font-family="Arial" text-anchor="middle" dominant-baseline="middle">Фото отсутствует</text></svg>`);
 
-  // Start with empty images — discovery will populate them and dedupe
+  // начальная структура — пустые списки изображений
   window.portfolioItems = [
     {id:1,title:'Классическая акубра',price:'14 500 ₽',status:'В наличии',images:[],description:'Австралийская акубра',orderLink:'#'},
-    {id:2,title:'Федора',price:'12 000 ₽',status:'В наличии',images:[],description:'Федора ручной формовки',orderLink:'#'},
+    {id:2,title:'Федора',price:'12 000 ₽',status:'В наличии',images:[],description:'Федора',orderLink:'#'},
     {id:3,title:'Сумка-тоут',price:'18 000 ₽',status:'Под заказ',images:[],description:'Сумка-тоут',orderLink:'#'},
-    {id:4,title:'Ремень',price:'8 500 ₽',status:'В наличии',images:[],description:'Ремень ручной выделки',orderLink:'#'},
-    {id:5,title:'Кошелёк',price:'4 200 ₽',status:'В наличии',images:[],description:'Кошелёк-кардхолдер',orderLink:'#'},
-    {id:6,title:'Шляпа-ковбой',price:'15 800 ₽',status:'Под заказ',images:[],description:'Шляпа-ковбой',orderLink:'#'},
-    {id:7,title:'Портфель',price:'22 000 ₽',status:'Под заказ',images:[],description:'Классический портфель',orderLink:'#'},
+    {id:4,title:'Ремень',price:'8 500 ₽',status:'В наличии',images:[],description:'Ремень',orderLink:'#'},
+    {id:5,title:'Кошелёк',price:'4 200 ₽',status:'В наличии',images:[],description:'Кошелёк',orderLink:'#'},
+    {id:6,title:'Шляпа-ковбой',price:'15 800 ₽',status:'Под заказ',images:[],description:'Шляпа',orderLink:'#'},
+    {id:7,title:'Портфель',price:'22 000 ₽',status:'Под заказ',images:[],description:'Портфель',orderLink:'#'},
     {id:8,title:'Мини-поясная сумка',price:'6 200 ₽',status:'В наличии',images:[],description:'Мини-поясная сумка',orderLink:'#'}
   ];
 
+  // проверка существования изображения (timeout)
   function checkImage(url, timeout = 4000){
     return new Promise(resolve => {
       const img = new Image();
@@ -122,6 +124,7 @@
     });
   }
 
+  // отрисовка сетки (немедленно)
   function renderGrid(){
     const grid = document.getElementById('portfolio-grid');
     grid.innerHTML = window.portfolioItems.map(item => {
@@ -148,6 +151,7 @@
     if(img){ img.src = newThumb; img.onerror = ()=> img.src = placeholder; }
   }
 
+  // обнаружение изображений для одной карточки
   async function discoverForItem(item){
     if(item._discovered) return;
     item._discovered = false;
@@ -166,9 +170,10 @@
           const path = `${itemFolderPrefix}${item.id}/${base}.${ext}`;
           if(known.has(path)) { foundForPosition = true; break; }
           // eslint-disable-next-line no-await-in-loop
-          if(await checkImage(path, 2000)){
+          if(await checkImage(path, 3000)){ // увеличенный таймаут для больших файлов
             item.images.push(path);
             known.add(path);
+            // обновляем превью если это первая реально найденная картинка
             if(item.images.length === 1) updateCardThumb(item.id, path);
             foundForPosition = true;
             break;
@@ -177,18 +182,12 @@
         if(foundForPosition) break;
       }
     }
-    // dedupe array preserving order
+    // дедупликация, сохранение порядка
     item.images = item.images.filter((v,i,a) => a.indexOf(v) === i);
     item._discovered = true;
   }
 
-  async function discoverAllItems(){
-    for(const it of window.portfolioItems){
-      // eslint-disable-next-line no-await-in-loop
-      await discoverForItem(it);
-    }
-  }
-
+  // фон: поиск только локальных hero файлов (больше timeout)
   async function discoverHeroLocal(){
     const list = [];
     for(const base of heroBases){
@@ -222,7 +221,27 @@
     }, 3000);
   }
 
-  // modal
+  // обнаружение всех item-ов с ограниченной параллельностью (pool)
+  async function discoverAllItemsParallel(concurrency = 3){
+    const items = window.portfolioItems.slice();
+    let idx = 0;
+    const workers = new Array(concurrency).fill(null).map(async () => {
+      while(true){
+        const i = idx++;
+        if(i >= items.length) break;
+        const it = items[i];
+        try {
+          // для каждого item запускаем discoverForItem
+          await discoverForItem(it);
+        } catch(e){
+          console.warn('discover error', e);
+        }
+      }
+    });
+    await Promise.all(workers);
+  }
+
+  // MODAL
   const modal = document.getElementById('product-modal');
   const modalImage = document.getElementById('modal-image');
   const modalTitle = document.getElementById('modal-title');
@@ -235,11 +254,17 @@
   const nextBtn = document.getElementById('next-image');
   let currentItem = null, currentIndex = 0;
 
+  // открываем модал сразу; если обнаружение не завершено — запускаем его и обновим модал по окончании
   async function openModal(item){
-    if(!item._discovered) await discoverForItem(item);
+    if(!item._discovered && !item._discovering){
+      item._discovering = true;
+      // Fire and forget, but ensure updateModal when complete
+      discoverForItem(item).then(()=> { item._discovering = false; if(currentItem && currentItem.id === item.id) updateModal(); });
+    }
     currentItem = item; currentIndex = 0; updateModal();
     modal.classList.remove('modal-exit'); modal.classList.add('modal-enter'); modal.setAttribute('aria-hidden','false'); modal.style.pointerEvents='auto'; document.body.style.overflow='hidden';
   }
+
   function updateModal(){
     if(!currentItem) return;
     modalImage.src = currentItem.images[currentIndex] || placeholder;
@@ -252,6 +277,7 @@
     modalOrderBtn.href = currentItem.orderLink || '#';
     modalThumbs.innerHTML = (currentItem.images || []).map((s,idx)=>`<img src="${s}" data-idx="${idx}" onerror="this.src='${placeholder}'">`).join('');
   }
+
   function closeModal(){ modal.classList.remove('modal-enter'); modal.classList.add('modal-exit'); modal.setAttribute('aria-hidden','true'); modal.style.pointerEvents='none'; document.body.style.overflow=''; currentItem = null; }
   function showIndex(i){ if(!currentItem) return; if(i<0) i = currentItem.images.length-1; if(i>=currentItem.images.length) i=0; currentIndex=i; updateModal(); }
 
@@ -261,13 +287,13 @@
       card.addEventListener('click', async ()=> {
         const id = +card.dataset.id;
         const item = window.portfolioItems.find(p=>p.id===id);
-        if(item) await openModal(item);
+        if(item) openModal(item); // не ждём полного discovery
       });
       card.addEventListener('keydown', async (e) => {
         if(e.key === 'Enter' || e.key === ' ') {
           const id = +card.dataset.id;
           const item = window.portfolioItems.find(p=>p.id===id);
-          if(item) await openModal(item);
+          if(item) openModal(item);
         }
       });
     });
@@ -280,21 +306,28 @@
   if(nextBtn) nextBtn.addEventListener('click', ()=> showIndex(currentIndex+1));
   modalThumbs.addEventListener('click', (e)=> { const img = e.target.closest('img'); if(!img) return; showIndex(+img.dataset.idx); });
 
-  // run
+  // старт: рендерим и запускаем discovery в фоне с ограничением параллелизма
   renderGrid();
   (async function init(){
     try{
       const heroList = await discoverHeroLocal();
       startHeroRotation(heroList);
-      await discoverAllItems();
-      for(const it of portfolioItems){
+
+      // discover in parallel (concurrency 3) — быстрее, не блокирует UI
+      await discoverAllItemsParallel(3);
+      // обновляем превьюы по окончании (вдобавок они обновляются по мере нахождения)
+      for(const it of window.portfolioItems){
         const real = it.images.find(s=>s && !s.startsWith('data:'));
         if(real) updateCardThumb(it.id, real);
       }
-    }catch(e){ console.error('Init discovery error', e); }
-    document.getElementById('year').textContent = new Date().getFullYear();
+    }catch(e){
+      console.error('Init discovery error', e);
+    } finally {
+      document.getElementById('year').textContent = new Date().getFullYear();
+    }
   })();
 
+  // expose for debugging/guards
   window.closeModal = closeModal;
 })();
 </script>
