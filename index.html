@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
-  <title>ONV Leather · Кожаные изделия ручной работы</title>
+  <title>ONV Leather · Кожаные изделия</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <style>
     :root{color-scheme:dark}
@@ -24,7 +24,6 @@
     #modal-thumbs{display:flex;gap:8px;padding:6px;overflow-x:auto;-webkit-overflow-scrolling:touch}
     #modal-thumbs img{flex:0 0 auto;width:72px;height:44px;object-fit:cover;border-radius:6px}
     @media(max-width:420px){#modal-thumbs img{width:60px;height:40px}}
-    /* spinner */
     .spinner{width:44px;height:44px;border:5px solid rgba(255,255,255,0.08);border-top-color:#C4A35A;border-radius:50%;animation:spin 1s linear infinite}
     @keyframes spin{to{transform:rotate(360deg)}}
     .center{display:flex;align-items:center;justify-content:center}
@@ -50,8 +49,7 @@
       </div>
       <div class="relative z-20 text-center mt-6">
         <h1 class="font-display text-3xl md:text-5xl lg:text-6xl">Австралийские шляпы и аксессуары</h1>
-        <p class="mt-4 muted max-w-2xl mx-auto">Ручная работа. Кожа высокого качества. Индивидуальный подход к каждому клиенту.</p>
-        <div class="mt-6"><a href="#catalog" class="inline-flex gap-3 px-6 py-3 border border-deco-gold/60 text-deco-gold hover:bg-deco-gold hover:text-black rounded-sm uppercase tracking-wider">Смотреть коллекцию</a></div>
+        <p class="mt-4 muted max-w-2xl mx-auto">Ручная работа. Кожа высокого качества.</p>
       </div>
     </div>
   </section>
@@ -61,9 +59,8 @@
       <div class="text-sm text-deco-gold/70 uppercase tracking-wide">Коллекция</div>
       <h2 class="text-3xl md:text-4xl mt-3">Избранные работы</h2>
     </div>
-    <div id="portfolio-grid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-      <!-- grid will be rendered -->
-    </div>
+
+    <div id="portfolio-grid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6"></div>
   </section>
 
   <footer class="py-10 px-5 md:px-8 lg:px-12 border-t border-deco-gold/8">
@@ -73,7 +70,6 @@
   </footer>
 </main>
 
-<!-- modal -->
 <div id="product-modal" class="fixed inset-0 z-50 flex items-center justify-center p-4 modal-exit bg-black/70 backdrop-blur-sm" aria-hidden="true">
   <div class="relative bg-[#091118] border border-deco-gold/15 max-w-4xl w-full rounded-sm shadow-2xl overflow-hidden">
     <button id="modal-close" data-modal-close aria-label="Закрыть">✕</button>
@@ -100,10 +96,10 @@
 
 <script>
 /*
-  Быстрый, надёжный discovery через GitHub REST Contents API.
-  - Один fetch на папку (hero, item-1..item-8)
-  - Формируем raw.githubusercontent URLs
-  - Кэш в localStorage на 10 минут (чтобы повторные загрузки были мгновенными)
+  Быстрый discovery через GitHub Contents API без блокировки UI:
+  - renderGrid() вызывается СРАЗУ (placeholders)
+  - затем background fetch manifest; при получении обновляем thumb/hero/modal
+  - cache в localStorage (10 минут)
 */
 (async function(){
   const owner = 'ONV-Leather';
@@ -117,26 +113,19 @@
   const itemsPrefix = 'assets/images/item-';
   const placeholder = 'data:image/svg+xml;utf8,' + encodeURIComponent(`<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="900"><rect width="100%" height="100%" fill="#222831"/><text x="50%" y="50%" fill="#9aa0a6" font-size="28" font-family="Arial" text-anchor="middle" dominant-baseline="middle">Фото отсутствует</text></svg>`);
 
-  // portfolioItems meta (images empty -> filled from API)
+  // initial portfolioItems (images empty)
   window.portfolioItems = [];
   for(let i=1;i<=itemCount;i++){
-    window.portfolioItems.push({ id:i, title:`Товар ${i}`, price:'—', status:'', images:[], description:'', orderLink:'#' });
+    window.portfolioItems.push({ id:i, title:`Товар ${i}`, price:'—', status:'', images:[], description:'', orderLink:'#', _discovered:false });
   }
 
-  // cache helpers
-  const CACHE_KEY = 'onv_manifest_v1';
-  const CACHE_TTL = 10 * 60 * 1000; // 10 minutes
-  function readCache(){ try{ const raw = localStorage.getItem(CACHE_KEY); if(!raw) return null; const obj = JSON.parse(raw); if(Date.now() - obj.ts > CACHE_TTL) return null; return obj.data;}catch(e){return null;} }
-  function writeCache(data){ try{ localStorage.setItem(CACHE_KEY, JSON.stringify({ ts: Date.now(), data })); }catch(e){} }
-
-  // utility: fetch JSON directory listing
+  // utility: list dir via GitHub API
   async function listDir(path){
     const url = baseApi + encodeURIComponent(path) + `?ref=${branch}`;
     try {
       const res = await fetch(url, { headers: { 'Accept': 'application/vnd.github.v3+json' }});
       if(!res.ok) return [];
       const json = await res.json();
-      // json is array of { name, path, type }
       return Array.isArray(json) ? json : [];
     } catch(e){
       console.warn('listDir error', e, url);
@@ -144,55 +133,20 @@
     }
   }
 
-  // build images list from directory entries (filter by extension and return raw URLs)
   function buildImagesFromEntries(entries){
     const files = entries
       .filter(e => e.type === 'file' && typeof e.name === 'string')
-      .filter(e => {
-        const nm = e.name.toLowerCase();
-        return exts.some(ext => nm.endsWith('.' + ext));
-      })
+      .filter(e => exts.some(ext => e.name.toLowerCase().endsWith('.' + ext)))
       .map(e => ({ name: e.name, path: e.path }));
-    // sort by name natural (01,02,... Hat1, Hat2 etc.)
     files.sort((a,b) => a.name.localeCompare(b.name, undefined, { numeric: true, sensitivity: 'base' }));
     return files.map(f => rawBase + f.path);
   }
 
-  // Try cache first
-  let manifest = readCache();
-  if(!manifest){
-    manifest = { hero: [], items: {} };
-    // Parallelize folder requests (hero + items)
-    const promises = [];
-    // hero
-    promises.push(listDir(heroPath).then(entries => manifest.hero = buildImagesFromEntries(entries)));
-    // items
-    for(let i=1;i<=itemCount;i++){
-      const p = `${itemsPrefix}${i}`;
-      promises.push(listDir(p).then(entries => manifest.items['item-' + i] = buildImagesFromEntries(entries)));
-    }
-    await Promise.all(promises);
-    writeCache(manifest);
-  }
-
-  // populate portfolioItems images from manifest
-  for(const it of window.portfolioItems){
-    const key = 'item-' + it.id;
-    if(manifest.items[key] && manifest.items[key].length) {
-      it.images = manifest.items[key].slice(); // copy
-      it._discovered = true;
-    } else {
-      it.images = [];
-      it._discovered = true; // no images found but considered discovered
-    }
-  }
-
-  // render grid now (fast)
+  // render grid immediately (placeholders or any images already set)
   function renderGrid(){
     const grid = document.getElementById('portfolio-grid');
     grid.innerHTML = window.portfolioItems.map(item => {
       const thumb = (item.images && item.images.length) ? item.images[0] : placeholder;
-      // show title/price from repo if you want to edit these fields in code; keep default for now
       return `
         <article class="portfolio-card deco-frame rounded-sm overflow-hidden border border-transparent cursor-pointer" tabindex="0" data-id="${item.id}">
           <div class="aspect-[3/4] overflow-hidden relative">
@@ -210,7 +164,12 @@
     attachGridHandlers();
   }
 
-  // modal utilities
+  function updateCardThumb(itemId, url){
+    const img = document.querySelector(`#portfolio-grid article[data-id="${itemId}"] img`);
+    if(img) img.src = url;
+  }
+
+  // modal utils
   const modal = document.getElementById('product-modal');
   const modalImage = document.getElementById('modal-image');
   const modalTitle = document.getElementById('modal-title');
@@ -222,11 +181,9 @@
   const modalLoading = document.getElementById('modal-loading');
   const prevBtn = document.getElementById('prev-image');
   const nextBtn = document.getElementById('next-image');
-  let currentItem=null, currentIndex=0;
+  let currentItem = null, currentIndex = 0;
 
-  function showModalSpinner(show){
-    modalLoading.style.display = show ? 'flex' : 'none';
-  }
+  function showModalSpinner(show){ modalLoading.style.display = show ? 'flex' : 'none'; }
 
   function updateModal(){
     if(!currentItem) return;
@@ -241,25 +198,19 @@
   }
 
   function openModal(item){
-    currentItem = item;
-    currentIndex = 0;
-    // show spinner only if images not loaded yet
-    const needLoading = !(item.images && item.images.length);
-    showModalSpinner(needLoading);
+    currentItem = item; currentIndex = 0;
+    showModalSpinner(!(item.images && item.images.length));
     updateModal();
     modal.classList.remove('modal-exit'); modal.classList.add('modal-enter'); modal.setAttribute('aria-hidden','false'); modal.style.pointerEvents='auto'; document.body.style.overflow='hidden';
-    // If images empty (shouldn't because we filled from manifest), try to fetch directory live as fallback
+    // If images empty, try to fetch folder live (non-blocking)
     if((!item.images || item.images.length === 0) && !item._fetching){
       item._fetching = true;
       listDir(`${itemsPrefix}${item.id}`).then(entries => {
         const imgs = buildImagesFromEntries(entries);
         if(imgs.length){
-          item.images = imgs;
-          updateCardThumb(item.id, imgs[0]);
-          if(currentItem && currentItem.id === item.id){
-            showModalSpinner(false);
-            updateModal();
-          }
+          item.images = imgs.filter((v,i,a)=>a.indexOf(v)===i);
+          updateCardThumb(item.id, item.images[0]);
+          if(currentItem && currentItem.id === item.id){ showModalSpinner(false); updateModal(); }
         } else {
           showModalSpinner(false);
         }
@@ -290,13 +241,6 @@
     });
   }
 
-  // utility: update card thumb
-  function updateCardThumb(itemId, url){
-    const img = document.querySelector(`#portfolio-grid article[data-id="${itemId}"] img`);
-    if(img) img.src = url;
-  }
-
-  // modal controls
   document.getElementById('modal-close').addEventListener('click', closeModal);
   modal.addEventListener('click', (e)=> { if(e.target === modal) closeModal(); });
   document.addEventListener('keydown', (e)=> { if(e.key === 'Escape') closeModal(); if(e.key === 'ArrowLeft') showIndex(currentIndex-1); if(e.key === 'ArrowRight') showIndex(currentIndex+1); });
@@ -304,12 +248,78 @@
   if(nextBtn) nextBtn.addEventListener('click', ()=> showIndex(currentIndex+1));
   modalThumbs.addEventListener('click', (e)=> { const img = e.target.closest('img'); if(!img) return; showIndex(+img.dataset.idx); });
 
-  // hero discovery & rotation
+  // initial render (immediate)
+  renderGrid();
+
+  // background: fetch manifest for hero + items (fast, one request per folder)
+  const CACHE_KEY = 'onv_manifest_v2';
+  const CACHE_TTL = 10 * 60 * 1000;
+
+  function readCache(){
+    try{ const raw = localStorage.getItem(CACHE_KEY); if(!raw) return null; const obj = JSON.parse(raw); if(Date.now() - obj.ts > CACHE_TTL) return null; return obj.data;}catch(e){return null;}
+  }
+  function writeCache(data){ try{ localStorage.setItem(CACHE_KEY, JSON.stringify({ ts: Date.now(), data })); }catch(e){} }
+
+  // perform background manifest fetch (non-blocking)
+  (async function backgroundManifest(){
+    try{
+      // try cache first
+      const cached = readCache();
+      if(cached){
+        // apply cached images to items immediately
+        if(cached.items){
+          for(const it of window.portfolioItems){
+            const key = 'item-' + it.id;
+            if(cached.items[key] && cached.items[key].length){
+              it.images = cached.items[key].slice();
+              it._discovered = true;
+              updateCardThumb(it.id, it.images[0]);
+            } else {
+              it.images = [];
+              it._discovered = true;
+            }
+          }
+        }
+        if(cached.hero && cached.hero.length){
+          // hero in cache may already be raw URLs
+          const heroList = cached.hero.map(p => p.startsWith('http') ? p : (rawBase + p));
+          startHeroRotation(heroList);
+        }
+      }
+      // now fetch fresh manifest in background (do not block)
+      const paths = [heroPath];
+      for(let i=1;i<=itemCount;i++) paths.push(`${itemsPrefix}${i}`);
+      const promises = paths.map(p => listDir(p));
+      const results = await Promise.all(promises);
+      const fresh = { hero: buildImagesFromEntries(results[0] || []), items: {} };
+      for(let i=1;i<=itemCount;i++){
+        fresh.items['item-'+i] = buildImagesFromEntries(results[i] || []);
+      }
+      // apply fresh
+      for(const it of window.portfolioItems){
+        const key = 'item-' + it.id;
+        if(fresh.items[key] && fresh.items[key].length){
+          it.images = fresh.items[key].slice();
+          it._discovered = true;
+          updateCardThumb(it.id, it.images[0]);
+        } else {
+          it.images = it.images || [];
+          it._discovered = true;
+        }
+      }
+      if(fresh.hero && fresh.hero.length) startHeroRotation(fresh.hero);
+      writeCache(fresh);
+    }catch(err){
+      console.warn('backgroundManifest error', err);
+    }
+  })();
+
+  // helper for hero rotation
   function buildImagesFromEntries(entries){
     return entries
-      .filter(e => e.type === 'file' && typeof e.name === 'string' )
+      .filter(e => e.type === 'file' && typeof e.name === 'string')
       .filter(e => exts.some(ext => e.name.toLowerCase().endsWith('.'+ext)))
-      .sort((a,b)=> a.name.localeCompare(b.name, undefined, { numeric:true, sensitivity:'base' }))
+      .sort((a,b)=> a.name.localeCompare(b.name, undefined, {numeric:true, sensitivity:'base'}))
       .map(e => rawBase + e.path);
   }
   function startHeroRotation(list){
@@ -321,70 +331,10 @@
     setInterval(()=>{ idx=(idx+1)%list.length; heroEl.style.opacity='0'; setTimeout(()=>{ heroEl.src=list[idx]; heroEl.style.opacity='1'; },260); }, 3000);
   }
 
-  // initial render + use manifest to set thumbs
-  renderGrid();
-
-  // After render, set thumbs using manifest (already populated above)
-  window.portfolioItems.forEach(it => {
-    if(it.images && it.images.length) updateCardThumb(it.id, it.images[0]);
-  });
-
-  // load hero images from manifest if present; if manifest had hero, start rotation
-  (function applyHero(){
-    try{
-      const cache = JSON.parse(localStorage.getItem('onv_manifest_v1') || '{}');
-      const data = cache.data || {};
-      const heroList = data.hero || [];
-      if(heroList.length){
-        // raw URLs already built in manifest earlier - if not, convert names to rawBase path
-        const resolved = heroList.map(p => p.startsWith('http') ? p : rawBase + p);
-        startHeroRotation(resolved);
-      } else {
-        // try fetch hero dir live (fast)
-        listDir(heroPath).then(entries => {
-          const files = entries.filter(e => e.type === 'file').filter(e=>exts.some(ext=>e.name.toLowerCase().endsWith('.'+ext))).sort((a,b)=>a.name.localeCompare(b.name, undefined, {numeric:true})).map(e=> rawBase + e.path);
-          startHeroRotation(files);
-        });
-      }
-    }catch(e){ console.warn('hero apply error', e); }
-  })();
-
-  // utility: rawBase used above; define now
+  // helper rawBase used in buildImagesFromEntries
   const rawBase = `https://raw.githubusercontent.com/${owner}/${repo}/${branch}/`;
 
-  // Helper to fetch dir on demand (used as fallback)
-  async function listDir(path){
-    const url = baseApi + encodeURIComponent(path) + `?ref=${branch}`;
-    try{
-      const res = await fetch(url, { headers: { 'Accept': 'application/vnd.github.v3+json' }});
-      if(!res.ok) return [];
-      const json = await res.json();
-      return Array.isArray(json) ? json : [];
-    }catch(e){ console.warn('listDir fetch error', e); return []; }
-  }
-
-  // If manifest was older than TTL or absent, background-refresh it (so next visit is fast)
-  (async function refreshManifestInBackground(){
-    try{
-      const nowManifest = readCache ? readCache() : null;
-      // do not block UI; try to fetch again and rewrite cache
-      const paths = [heroPath];
-      for(let i=1;i<=8;i++) paths.push(`${itemsPrefix}${i}`);
-      const promises = paths.map(p => listDir(p));
-      const results = await Promise.all(promises);
-      const fresh = { hero: buildImagesFromEntries(results[0] || []), items: {} };
-      for(let i=1;i<=8;i++){
-        fresh.items['item-'+i] = buildImagesFromEntries(results[i] || []);
-      }
-      writeCache && writeCache(fresh);
-    }catch(e){ /* ignore background errors */ }
-  })();
-
-  // helpers for cache read/write used above - re-declare here for scoping
-  function readCache(){ try{ const raw = localStorage.getItem('onv_manifest_v1'); if(!raw) return null; const obj = JSON.parse(raw); if(Date.now() - obj.ts > 10*60*1000) return null; return obj; }catch(e){return null;} }
-  function writeCache(data){ try{ localStorage.setItem('onv_manifest_v1', JSON.stringify({ ts: Date.now(), data })); }catch(e){} }
-
-  // finally, set year
+  // set year
   document.getElementById('year').textContent = new Date().getFullYear();
 
 })();
