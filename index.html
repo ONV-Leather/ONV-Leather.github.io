@@ -6,8 +6,8 @@
   <title>ONV Leather · Кожаные изделия</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <!-- Favicons -->
-  <link rel="icon" href="/assets/images/logo.png" />
-  <link rel="apple-touch-icon" sizes="180x180" href="/assets/images/logo.png" />
+  <link rel="icon" type="image/png" href="/assets/images/logo.png" />
+  <link rel="apple-touch-icon" href="/assets/images/logo.png" />
   <style>
     :root{color-scheme:dark}
     html,body{height:100%;margin:0;font-family:Inter,system-ui,-apple-system,"Segoe UI",Roboto,"Helvetica Neue",Arial;background:linear-gradient(160deg,#102635 0%,#184054 45%,#223d56 100%);color:#efe8db}
@@ -38,7 +38,7 @@
   <div class="backdrop-blur-md bg-black/20 border-b border-deco-gold/8">
     <div class="max-w-7xl mx-auto px-5 md:px-8 lg:px-12 flex items-center justify-between h-16">
       <a href="/" class="flex items-center gap-3">
-        <img src="/assets/images/logo.png" srcset="/assets/images/logo.png 1x" alt="ONV Leather" class="h-16 md:h-20" />
+        <img src="/assets/images/logo.png" alt="ONV Leather" class="h-16 md:h-20 w-auto" loading="lazy" />
         <span class="text-deco-gold text-xl md:text-2xl">ONV Leather</span>
       </a>
       <button id="menu-toggle" class="md:hidden p-2" aria-label="menu">☰</button>
@@ -54,11 +54,8 @@
         <div id="hero-fallback" class="no-hero">Фоновая фотография не найдена в assets/images/hero/</div>
       </div>
       <div class="relative z-20 text-center mt-6">
-        <h1 class="font-display text-3xl md:text-5xl lg:text-6xl">Австралийские кожаные шляпы и аксессуары</h1>
-        <p class="mt-4 muted max-w-2xl mx-auto">Хорошая вещь не нуждается в лишних словах.
-Здесь представлены изделия, созданные вручную из натуральной кожи — от первых эскизов до последнего стежка. Каждая модель рождается из стремления соединить классические формы, практичность и долговечность.
-Со временем кожа приобретает собственный характер, сохраняя следы использования и становясь только красивее. Именно поэтому настоящие кожаные изделия ценят не за сезонную моду, а за годы службы.
-Мастерская ONV Leather создаёт вещи, которые приятно использовать каждый день и не хочется менять спустя годы.</p>
+        <h1 class="font-display text-3xl md:text-5xl lg:text-6xl">Австралийские шляпы и аксессуары</h1>
+        <p class="mt-4 muted max-w-2xl mx-auto">Ручная работа. Кожа высокого качества.</p>
       </div>
     </div>
   </section>
@@ -74,7 +71,13 @@
 
   <footer class="py-10 px-5 md:px-8 lg:px-12 border-t border-deco-gold/8">
     <div class="max-w-6xl mx-auto flex flex-col md:flex-row justify-between items-center gap-6">
-      <div><div class="text-deco-gold text-xl">ONV Leather</div><div class="muted text-sm mt-2">© <span id="year"></span></div></div>
+      <div class="flex items-center gap-4">
+        <img src="/assets/images/logo.png" alt="ONV Leather" class="h-8 md:h-10 w-auto" />
+        <div>
+          <div class="text-deco-gold text-xl">ONV Leather</div>
+          <div class="muted text-sm mt-2">© <span id="year"></span></div>
+        </div>
+      </div>
     </div>
   </footer>
 </main>
